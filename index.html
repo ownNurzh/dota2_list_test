@@ -276,11 +276,11 @@
                 nickname: 'Yerbolo',
                 fullName: 'Ербол',
                 role: 'Carry',
-                tier: 'Tier 1',
-                mmr: 13000,
+                tier: 'Tier 2',
+                mmr: 3900,
                 tags: ['Таракан король', 'Стример', 'Онли луз'],
                 notes: 'Арыстаны оянса жаман',
-                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+                avatar: 'https://imgs.search.brave.com/yAW1lQycdlK6VDGO-xWqBlStpvOoqUxUvA0AKs4zaBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMxNi50Z2NudC5y/dS9wb3N0cy9fMC85/Ni85NmRiM2QxMmU4/ODcyNzIyMzMzMTY2/NDc5YjkyOTIxMC5q/cGc',
                 signatureHeroes: ['Drowranger', 'Lifestrealer']
             },
             {
@@ -288,18 +288,17 @@
                 nickname: 'General',
                 fullName: 'Димок',
                 role: 'Carry',
-                tier: 'Tier 1',
-                mmr: 4000,
+                tier: 'Tier 2',
+                mmr: 4100,
                 tags: ['Сору', 'Жалау', 'Ампылдап калу'],
                 notes: '0/20 болу сәнғой',
-                avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&auto=format&fit=crop&q=80',
+                avatar: 'https://imgs.search.brave.com/fLn2-Em8z-gc1CWJpie9GK6YE4VspO8GtnS6s-MiqBo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZW1p/LmtsZXYuY2x1Yi91/cGxvYWRzL3Bvc3Rz/LzIwMjQtMDQvdGh1/bWJzL21lbWkta2xl/di1jbHViLWEzbDQt/cC1tZW1pLWJvbHNo/b2ktbmVnci03Lmpw/Zw',
                 signatureHeroes: ['Juggernaut', 'Terrorblade']
             }
         ];
 
         // State Store
         let players = [];
-        let activeModalPlayerId = null;
 
         // Initialize App
         document.addEventListener('DOMContentLoaded', () => {
@@ -310,25 +309,10 @@
 
         // Load Local Storage
         function loadPlayers() {
-            const saved = localStorage.getItem('dota_local_players_list');
-            if (saved) {
-                try {
-                    players = JSON.parse(saved);
-                } catch (e) {
-                    players = DEFAULT_PLAYERS;
-                }
-            } else {
-                players = DEFAULT_PLAYERS;
-                savePlayers();
-            }
+            players = DEFAULT_PLAYERS;  
         }
 
-        // Save Local Storage
-        function savePlayers() {
-            localStorage.setItem('dota_local_players_list', JSON.stringify(players));
-        }
 
-        // Filter & Sort Logic
         function filterAndRender() {
             const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
             const roleVal = document.getElementById('role-filter').value;
@@ -467,132 +451,8 @@
             filterAndRender();
         }
 
-        // Open View Modal
-        function openModal(id) {
-            const player = players.find(p => p.id === id);
-            if (!player) return;
 
-            activeModalPlayerId = id;
-            const avatarUrl = player.avatar || `https://placehold.co/150x150/1e2638/ffffff?text=${encodeURIComponent(player.nickname.substring(0, 2))}`;
 
-            document.getElementById('modal-avatar').src = avatarUrl;
-            document.getElementById('modal-nickname').textContent = player.nickname;
-            document.getElementById('modal-fullname').textContent = player.fullName || 'Имя не указано';
-            document.getElementById('modal-role').textContent = player.role;
-            document.getElementById('modal-role-badge').textContent = player.role;
-            document.getElementById('modal-tier').textContent = player.tier;
-            document.getElementById('modal-mmr').textContent = player.mmr ? player.mmr.toLocaleString() : 'N/A';
-            document.getElementById('modal-notes').textContent = player.notes || 'Заметки отсутствуют.';
-
-            document.getElementById('modal-heroes').innerHTML = player.signatureHeroes.length 
-                ? player.signatureHeroes.map(h => `<span class="px-2.5 py-1 bg-slate-800 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-fire text-amber-500 text-[10px]"></i> ${h}</span>`).join('')
-                : '<span class="text-xs text-gray-500">Не указаны</span>';
-
-            document.getElementById('modal-tags').innerHTML = player.tags.length 
-                ? player.tags.map(t => `<span class="px-2 py-0.5 bg-slate-800 text-gray-300 border border-gray-700 rounded-md text-xs">#${t}</span>`).join('')
-                : '<span class="text-xs text-gray-500">Нет тегов</span>';
-
-            document.getElementById('modal-edit-btn').onclick = () => { closeModal(); openEditModal(id); };
-            document.getElementById('modal-delete-btn').onclick = () => deletePlayer(id);
-
-            document.getElementById('player-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            document.getElementById('player-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Add / Edit Modal Functions
-        function openAddModal() {
-            document.getElementById('form-title').textContent = 'Добавить игрока';
-            document.getElementById('form-player-id').value = '';
-            document.getElementById('player-form').reset();
-            document.getElementById('form-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function openEditModal(id) {
-            const player = players.find(p => p.id === id);
-            if (!player) return;
-
-            document.getElementById('form-title').textContent = 'Редактировать игрока';
-            document.getElementById('form-player-id').value = player.id;
-            document.getElementById('form-nickname').value = player.nickname;
-            document.getElementById('form-fullname').value = player.fullName || '';
-            document.getElementById('form-role').value = player.role;
-            document.getElementById('form-tier').value = player.tier;
-            document.getElementById('form-mmr').value = player.mmr || '';
-            document.getElementById('form-avatar').value = player.avatar || '';
-            document.getElementById('form-heroes').value = player.signatureHeroes.join(', ');
-            document.getElementById('form-tags').value = player.tags.join(', ');
-            document.getElementById('form-notes').value = player.notes || '';
-
-            document.getElementById('form-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeFormModal() {
-            document.getElementById('form-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Form Submit
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const id = document.getElementById('form-player-id').value;
-            const nickname = document.getElementById('form-nickname').value.trim();
-            const fullName = document.getElementById('form-fullname').value.trim();
-            const role = document.getElementById('form-role').value;
-            const tier = document.getElementById('form-tier').value;
-            const mmr = parseInt(document.getElementById('form-mmr').value) || 0;
-            const avatar = document.getElementById('form-avatar').value.trim();
-            const heroesRaw = document.getElementById('form-heroes').value;
-            const tagsRaw = document.getElementById('form-tags').value;
-            const notes = document.getElementById('form-notes').value.trim();
-
-            const signatureHeroes = heroesRaw ? heroesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-            const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-            if (id) {
-                // Update existing
-                const idx = players.findIndex(p => p.id === id);
-                if (idx !== -1) {
-                    players[idx] = { id, nickname, fullName, role, tier, mmr, avatar, signatureHeroes, tags, notes };
-                }
-            } else {
-                // Create new
-                const newPlayer = {
-                    id: 'p_' + Date.now(),
-                    nickname,
-                    fullName,
-                    role,
-                    tier,
-                    mmr,
-                    avatar,
-                    signatureHeroes,
-                    tags,
-                    notes
-                };
-                players.unshift(newPlayer);
-            }
-
-            savePlayers();
-            filterAndRender();
-            closeFormModal();
-        }
-
-        // Delete Player
-        function deletePlayer(id) {
-            if (confirm('Удалить этого игрока из локального списка?')) {
-                players = players.filter(p => p.id !== id);
-                savePlayers();
-                filterAndRender();
-                closeModal();
-            }
-        }
     </script>
 </body>
 </html>
