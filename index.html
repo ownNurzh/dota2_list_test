@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOTA сүйер қауым - Жеке ойыншылар базасы</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dota: {
+                            dark: '#080A0F',
+                            card: '#111622',
+                            border: '#1E2638',
+                            red: '#E53E3E',
+                            accent: '#FF4655',
+                            gold: '#ECC94B',
+                            blue: '#3182CE',
+                            purple: '#805AD5',
+                            green: '#38A169'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #080A0F;
+            color: #E2E8F0;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(229, 62, 62, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(56, 161, 105, 0.06) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: rgba(17, 22, 34, 0.8);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(20, 26, 38, 0.85) 0%, rgba(12, 16, 24, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 70, 85, 0.4);
+            box-shadow: 0 12px 28px -8px rgba(255, 70, 85, 0.15);
+        }
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080A0F;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E2638;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF4655;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-red-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-gray-800/80 px-4 sm:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-600 to-green-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-red-950/50">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-lg sm:text-2xl tracking-wider uppercase text-white flex items-center gap-2">
+                        DOTA <span class="text-red-500">сүйер қауым</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 hidden sm:block">Жеке локальный список и заметки по игрокам</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
+        
+        <!-- Hero Title Section -->
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-address-book text-red-500 text-xl"></i>
+                    Таракандардың тізімі
+                </h2>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="glass-panel rounded-2xl p-4 sm:p-5 mb-6 shadow-xl">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+                
+                <!-- Search Box -->
+                <div class="lg:col-span-5 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" id="search-input" placeholder="Іздеу ник,тир,тег" 
+                           class="w-full bg-slate-900/90 border border-gray-700/80 rounded-xl pl-10 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors">
+                    <button id="clear-search" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Role Filter -->
+                <div class="lg:col-span-2">
+                    <select id="role-filter" class="w-full bg-slate-900/90 border border-gray-700/80 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500 transition-colors cursor-pointer">
+                        <option value="all">Барлық роль</option>
+                        <option value="Carry">Carry (Pos 1)</option>
+                        <option value="Mid">Mid (Pos 2)</option>
+                        <option value="Offlane">Offlane (Pos 3)</option>
+                        <option value="Soft Support">Soft Support (Pos 4)</option>
+                        <option value="Hard Support">Hard Support (Pos 5)</option>
+                    </select>
+                </div>
+
+                <!-- Tier Filter -->
+                <div class="lg:col-span-2">
+                    <select id="tier-filter" class="w-full bg-slate-900/90 border border-gray-700/80 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500 transition-colors cursor-pointer">
+                        <option value="all">Барлық тирлар</option>
+                        <option value="Tier 1">Tier 1</option>
+                        <option value="Tier 2">Tier 2</option>
+                        <option value="Tier 3">Tier 3</option>
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div class="lg:col-span-3">
+                    <select id="sort-filter" class="w-full bg-slate-900/90 border border-gray-700/80 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-red-500 transition-colors cursor-pointer">
+                        <option value="mmr-desc">Сүзгілеу: MMR (Үлкен -> Кіші)</option>
+                        <option value="mmr-asc">Сүзгілеу: MMR (Кіші -> Үлкен)</option>
+                        <option value="name-asc">Алфавит бойынша (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Info & Counter -->
+        <div class="flex justify-between items-center mb-5 text-xs sm:text-sm text-gray-400 px-1">
+            <div>
+                Барлық ойыншылар <span id="player-count" class="text-white font-bold">0</span>
+            </div>
+            <button onclick="resetFilters()" class="text-xs text-red-400 hover:text-red-300 underline underline-offset-4 flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left text-[10px]"></i> Фильтр тазалау
+            </button>
+        </div>
+
+        <!-- Player Cards Grid -->
+        <div id="players-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Dynamic Player Cards Generated via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-16 glass-panel rounded-2xl">
+            <i class="fa-solid fa-user-slash text-5xl text-gray-600 mb-4"></i>
+            <h3 class="text-lg font-bold text-white mb-2">Ойыншылар табылмады</h3>
+            <p class="text-gray-400 text-xs sm:text-sm max-w-md mx-auto mb-6">Тізім пустой азат тараканның басы сияқты.</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="resetFilters()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium rounded-xl transition-colors">
+                    Фильтр тазалау
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-gray-800 py-5 mt-10 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 DOTA сүйер қауым. Личный локальный блокнот игроков.</p>
+        </div>
+    </footer>
+
+    <!-- Player Detail Modal -->
+    <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity">
+        <div class="relative w-full max-w-2xl bg-slate-900 border border-gray-700/80 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            
+            <!-- Modal Close & Action Buttons -->
+            <div class="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <button id="modal-edit-btn" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-amber-600 text-gray-300 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                </button>
+                <button id="modal-delete-btn" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal Header Background -->
+            <div class="h-28 bg-gradient-to-r from-red-950/60 via-slate-900 to-slate-950 relative p-6 flex items-end border-b border-gray-800"></div>
+
+            <!-- Modal Body Content -->
+            <div class="p-6 overflow-y-auto space-y-5 flex-grow -mt-12">
+                <!-- Main Header Info -->
+                <div class="flex flex-col sm:flex-row items-center sm:items-end gap-4 border-b border-gray-800/80 pb-5">
+                    <img id="modal-avatar" src="" alt="" class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-700 shadow-xl bg-slate-800">
+                    <div class="text-center sm:text-left flex-grow">
+                        <div class="flex items-center justify-center sm:justify-start gap-2">
+                            <h3 id="modal-nickname" class="text-2xl font-black text-white"></h3>
+                        </div>
+                        <p id="modal-fullname" class="text-xs text-gray-400"></p>
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+                            <span id="modal-role" class="px-2.5 py-1 bg-red-950/70 text-red-400 border border-red-800/50 rounded-lg text-xs font-semibold"></span>
+                            <span id="modal-tier" class="px-2.5 py-1 bg-amber-950/70 text-amber-400 border border-amber-800/50 rounded-lg text-xs font-semibold"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-gray-800/80 text-center">
+                        <span class="text-xs text-gray-400 block mb-0.5">MMR</span>
+                        <span id="modal-mmr" class="text-lg font-bold text-amber-400 font-mono"></span>
+                    </div>
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-gray-800/80 text-center">
+                        <span class="text-xs text-gray-400 block mb-0.5">Основная Роль</span>
+                        <span id="modal-role-badge" class="text-sm font-semibold text-white"></span>
+                    </div>
+                </div>
+
+                <!-- Signature Heroes -->
+                <div>
+                    <h4 class="text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Сигнатурные Герои</h4>
+                    <div id="modal-heroes" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Personal Notes -->
+                <div>
+                    <h4 class="text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Заметки / Описание</h4>
+                    <p id="modal-notes" class="text-xs sm:text-sm text-gray-300 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-gray-800/80 whitespace-pre-line"></p>
+                </div>
+
+                <!-- Tags List -->
+                <div>
+                    <h4 class="text-xs uppercase font-bold text-gray-400 tracking-wider mb-2">Теги</h4>
+                    <div id="modal-tags" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial Mock Local Data
+        const DEFAULT_PLAYERS = [
+            {
+                id: 'p1',
+                nickname: 'Yerbolo',
+                fullName: 'Ербол',
+                role: 'Carry',
+                tier: 'Tier 1',
+                mmr: 13000,
+                tags: ['Таракан король', 'Стример', 'Онли луз'],
+                notes: 'Арыстаны оянса жаман',
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80',
+                signatureHeroes: ['Drowranger', 'Lifestrealer']
+            },
+            {
+                id: 'p2',
+                nickname: 'General',
+                fullName: 'Димок',
+                role: 'Carry',
+                tier: 'Tier 1',
+                mmr: 4000,
+                tags: ['Сору', 'Жалау', 'Ампылдап калу'],
+                notes: '0/20 болу сәнғой',
+                avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&auto=format&fit=crop&q=80',
+                signatureHeroes: ['Juggernaut', 'Terrorblade']
+            }
+        ];
+
+        // State Store
+        let players = [];
+        let activeModalPlayerId = null;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPlayers();
+            filterAndRender();
+            setupEventListeners();
+        });
+
+        // Load Local Storage
+        function loadPlayers() {
+            const saved = localStorage.getItem('dota_local_players_list');
+            if (saved) {
+                try {
+                    players = JSON.parse(saved);
+                } catch (e) {
+                    players = DEFAULT_PLAYERS;
+                }
+            } else {
+                players = DEFAULT_PLAYERS;
+                savePlayers();
+            }
+        }
+
+        // Save Local Storage
+        function savePlayers() {
+            localStorage.setItem('dota_local_players_list', JSON.stringify(players));
+        }
+
+        // Filter & Sort Logic
+        function filterAndRender() {
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const roleVal = document.getElementById('role-filter').value;
+            const tierVal = document.getElementById('tier-filter').value;
+            const sortVal = document.getElementById('sort-filter').value;
+
+            document.getElementById('clear-search').classList.toggle('hidden', searchVal === '');
+
+            let filtered = players.filter(player => {
+                const matchesSearch = 
+                    player.nickname.toLowerCase().includes(searchVal) ||
+                    (player.fullName && player.fullName.toLowerCase().includes(searchVal)) ||
+                    (player.notes && player.notes.toLowerCase().includes(searchVal)) ||
+                    player.signatureHeroes.some(h => h.toLowerCase().includes(searchVal)) ||
+                    player.tags.some(t => t.toLowerCase().includes(searchVal));
+
+                const matchesRole = roleVal === 'all' || player.role === roleVal;
+                const matchesTier = tierVal === 'all' || player.tier === tierVal;
+
+                return matchesSearch && matchesRole && matchesTier;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                if (sortVal === 'mmr-desc') return (b.mmr || 0) - (a.mmr || 0);
+                if (sortVal === 'mmr-asc') return (a.mmr || 0) - (b.mmr || 0);
+                if (sortVal === 'name-asc') return a.nickname.localeCompare(b.nickname);
+                return 0;
+            });
+
+            renderGrid(filtered);
+        }
+
+        // Render Cards Grid
+        function renderGrid(list) {
+            const grid = document.getElementById('players-grid');
+            const emptyState = document.getElementById('empty-state');
+            const countElem = document.getElementById('player-count');
+
+            countElem.textContent = list.length;
+
+            if (list.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = list.map(player => {
+                // Tier badge colors
+                let tierClass = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                if (player.tier === 'Tier 1') tierClass = 'bg-red-500/20 text-red-400 border-red-500/30';
+                if (player.tier === 'Tier 2') tierClass = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+                if (player.tier === 'Tier 3') tierClass = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+
+                const avatarUrl = player.avatar || `https://placehold.co/150x150/1e2638/ffffff?text=${encodeURIComponent(player.nickname.substring(0, 2))}`;
+
+                return `
+                <div onclick="openModal('${player.id}')" class="glass-card rounded-2xl p-4 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
+                    
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                    <div>
+                        <!-- Header: Tier Badge -->
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded border ${tierClass}">
+                                ${player.tier}
+                            </span>
+                            <span class="text-xs font-mono font-bold text-amber-400">
+                                <i class="fa-solid fa-trophy text-[10px] mr-1"></i>${player.mmr ? player.mmr.toLocaleString() + ' MMR' : 'N/A'}
+                            </span>
+                        </div>
+
+                        <!-- Player Info -->
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="${avatarUrl}" id="img-${player.id}" onerror="this.src='https://placehold.co/100x100/1e2638/ffffff?text=DOTA'" alt="${player.nickname}" class="w-12 h-12 rounded-xl object-cover border border-gray-700 bg-slate-800">
+                            <div class="overflow-hidden">
+                                <h3 class="font-bold text-base text-white group-hover:text-red-400 transition-colors truncate">
+                                    ${player.nickname}
+                                </h3>
+                                <p class="text-xs text-gray-400 truncate">${player.fullName || 'Без имени'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Role Badge -->
+                        <div class="my-2 py-1.5 border-y border-gray-800/80 flex justify-between items-center text-xs">
+                            <span class="text-gray-400 text-[11px]">Роль:</span>
+                            <span class="text-white font-semibold text-[11px] bg-slate-800 px-2 py-0.5 rounded border border-gray-700/60">${player.role}</span>
+                        </div>
+
+                        <!-- Notes snippet -->
+                        ${player.notes ? `<p class="text-[11px] text-gray-400 line-clamp-2 my-2 italic">"${player.notes}"</p>` : ''}
+
+                        <!-- Tags Preview -->
+                        <div class="flex flex-wrap gap-1 my-2">
+                            ${player.tags.slice(0, 3).map(t => `<span class="text-[10px] bg-slate-900/80 text-gray-300 px-1.5 py-0.5 rounded border border-gray-800">#${t}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Card Footer: Heroes -->
+                    <div class="mt-2 pt-2 border-t border-gray-800/50 flex items-center justify-between text-[11px] text-gray-400">
+                        <span class="text-gray-500">Сигнатурки:</span>
+                        <div class="font-mono text-slate-300 truncate max-w-[150px]">
+                            ${player.signatureHeroes.join(', ') || 'Не указаны'}
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function setupEventListeners() {
+            document.getElementById('search-input').addEventListener('input', filterAndRender);
+            document.getElementById('role-filter').addEventListener('change', filterAndRender);
+            document.getElementById('tier-filter').addEventListener('change', filterAndRender);
+            document.getElementById('sort-filter').addEventListener('change', filterAndRender);
+
+            document.getElementById('clear-search').addEventListener('click', () => {
+                document.getElementById('search-input').value = '';
+                filterAndRender();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    closeFormModal();
+                }
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('role-filter').value = 'all';
+            document.getElementById('tier-filter').value = 'all';
+            document.getElementById('sort-filter').value = 'mmr-desc';
+            filterAndRender();
+        }
+
+        // Open View Modal
+        function openModal(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            activeModalPlayerId = id;
+            const avatarUrl = player.avatar || `https://placehold.co/150x150/1e2638/ffffff?text=${encodeURIComponent(player.nickname.substring(0, 2))}`;
+
+            document.getElementById('modal-avatar').src = avatarUrl;
+            document.getElementById('modal-nickname').textContent = player.nickname;
+            document.getElementById('modal-fullname').textContent = player.fullName || 'Имя не указано';
+            document.getElementById('modal-role').textContent = player.role;
+            document.getElementById('modal-role-badge').textContent = player.role;
+            document.getElementById('modal-tier').textContent = player.tier;
+            document.getElementById('modal-mmr').textContent = player.mmr ? player.mmr.toLocaleString() : 'N/A';
+            document.getElementById('modal-notes').textContent = player.notes || 'Заметки отсутствуют.';
+
+            document.getElementById('modal-heroes').innerHTML = player.signatureHeroes.length 
+                ? player.signatureHeroes.map(h => `<span class="px-2.5 py-1 bg-slate-800 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-fire text-amber-500 text-[10px]"></i> ${h}</span>`).join('')
+                : '<span class="text-xs text-gray-500">Не указаны</span>';
+
+            document.getElementById('modal-tags').innerHTML = player.tags.length 
+                ? player.tags.map(t => `<span class="px-2 py-0.5 bg-slate-800 text-gray-300 border border-gray-700 rounded-md text-xs">#${t}</span>`).join('')
+                : '<span class="text-xs text-gray-500">Нет тегов</span>';
+
+            document.getElementById('modal-edit-btn').onclick = () => { closeModal(); openEditModal(id); };
+            document.getElementById('modal-delete-btn').onclick = () => deletePlayer(id);
+
+            document.getElementById('player-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('player-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Add / Edit Modal Functions
+        function openAddModal() {
+            document.getElementById('form-title').textContent = 'Добавить игрока';
+            document.getElementById('form-player-id').value = '';
+            document.getElementById('player-form').reset();
+            document.getElementById('form-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openEditModal(id) {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+
+            document.getElementById('form-title').textContent = 'Редактировать игрока';
+            document.getElementById('form-player-id').value = player.id;
+            document.getElementById('form-nickname').value = player.nickname;
+            document.getElementById('form-fullname').value = player.fullName || '';
+            document.getElementById('form-role').value = player.role;
+            document.getElementById('form-tier').value = player.tier;
+            document.getElementById('form-mmr').value = player.mmr || '';
+            document.getElementById('form-avatar').value = player.avatar || '';
+            document.getElementById('form-heroes').value = player.signatureHeroes.join(', ');
+            document.getElementById('form-tags').value = player.tags.join(', ');
+            document.getElementById('form-notes').value = player.notes || '';
+
+            document.getElementById('form-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFormModal() {
+            document.getElementById('form-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Form Submit
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('form-player-id').value;
+            const nickname = document.getElementById('form-nickname').value.trim();
+            const fullName = document.getElementById('form-fullname').value.trim();
+            const role = document.getElementById('form-role').value;
+            const tier = document.getElementById('form-tier').value;
+            const mmr = parseInt(document.getElementById('form-mmr').value) || 0;
+            const avatar = document.getElementById('form-avatar').value.trim();
+            const heroesRaw = document.getElementById('form-heroes').value;
+            const tagsRaw = document.getElementById('form-tags').value;
+            const notes = document.getElementById('form-notes').value.trim();
+
+            const signatureHeroes = heroesRaw ? heroesRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+            const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            if (id) {
+                // Update existing
+                const idx = players.findIndex(p => p.id === id);
+                if (idx !== -1) {
+                    players[idx] = { id, nickname, fullName, role, tier, mmr, avatar, signatureHeroes, tags, notes };
+                }
+            } else {
+                // Create new
+                const newPlayer = {
+                    id: 'p_' + Date.now(),
+                    nickname,
+                    fullName,
+                    role,
+                    tier,
+                    mmr,
+                    avatar,
+                    signatureHeroes,
+                    tags,
+                    notes
+                };
+                players.unshift(newPlayer);
+            }
+
+            savePlayers();
+            filterAndRender();
+            closeFormModal();
+        }
+
+        // Delete Player
+        function deletePlayer(id) {
+            if (confirm('Удалить этого игрока из локального списка?')) {
+                players = players.filter(p => p.id !== id);
+                savePlayers();
+                filterAndRender();
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
