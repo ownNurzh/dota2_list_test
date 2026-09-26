@@ -48,10 +48,10 @@ export const players: Player[] = [
       "Lifestealer"
     ],
     "stats": {
-      "mechanics": 74,
-      "farming": 78,
+      "mechanics": 70,
+      "farming": 50,
       "teamwork": 62,
-      "gameSense": 68,
+      "gameSense": 60,
       "versatility": 64
     }
   },
@@ -781,6 +781,30 @@ export const players: Player[] = [
       "teamwork": 87,
       "gameSense": 93,
       "versatility": 92
+    }
+  },
+  {
+    "id": "p31",
+    "nickname": "Daiteris",
+    "fullName": "Искандер",
+    "role": "Offlane",
+    "tier": "Tier 1",
+    "mmr": 5000,
+    "tags": [
+      
+    ],
+    "notes": "Чилл",
+    "avatar": null,
+    "signatureHeroes": [
+      "Queen of Pain",
+      "Magnus"
+    ],
+    "stats": {
+      "mechanics": 80,
+      "farming": 86,
+      "teamwork": 70,
+      "gameSense": 85,
+      "versatility": 70
     }
   }
 ]
