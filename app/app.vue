@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const tab = useDirectoryTab()
 const { favorites } = useFavorites()
+const route = useRoute()
+const isTournament = computed(() => route.path.replace(/\/$/, '') === '/tournament')
 </script>
 
 <template>
@@ -13,17 +15,18 @@ const { favorites } = useFavorites()
           <span>DOTA<span class="brand-community">қауым<span class="brand-dot">.</span></span></span>
         </NuxtLink>
         <nav class="main-nav" aria-label="Основная навигация">
-          <NuxtLink to="/" :class="{ active: tab === 'players' }"><AppIcon name="users" :size="17" />Наш стак</NuxtLink>
-          <NuxtLink to="/?tab=ranking" :class="{ active: tab === 'ranking' }"><AppIcon name="trophy" :size="17" />Рейтинг</NuxtLink>
-          <NuxtLink to="/?tab=favorites" :class="{ active: tab === 'favorites' }"><AppIcon name="star" :size="17" />Избранное<span v-if="favorites.length" class="nav-count">{{ favorites.length }}</span></NuxtLink>
+          <NuxtLink to="/" :class="{ active: !isTournament && tab === 'players' }"><AppIcon name="users" :size="17" />Наши</NuxtLink>
+          <NuxtLink to="/tournament" :class="{ active: isTournament }"><AppIcon name="trophy" :size="17" />Турнир</NuxtLink>
+          <NuxtLink to="/?tab=ranking" :class="{ active: !isTournament && tab === 'ranking' }"><AppIcon name="chart" :size="17" />Рейтинг</NuxtLink>
+          <NuxtLink to="/?tab=favorites" :class="{ active: !isTournament && tab === 'favorites' }"><AppIcon name="star" :size="17" />Избранное<span v-if="favorites.length" class="nav-count">{{ favorites.length }}</span></NuxtLink>
         </nav>
-        <div class="community-label"><AppIcon name="swords" :size="13" /> ВЕЧЕРОМ — В ДОТУ <span class="country-label">KZ</span></div>
+        <div class="community-label"><AppIcon name="swords" :size="13" /> СВОИ ЛОББИ · 5 НА 5 <span class="country-label">KZ</span></div>
       </div>
     </header>
     <main id="main-content"><NuxtPage /></main>
     <footer class="site-footer page-container">
-      <div><strong>DOTA қауым<span>.</span></strong><p>Наш вечер. Наша пати.</p></div>
-      <span class="footer-note">Для друзей, с которыми каждый вечер в Доте.<br>И ради которых играем «ещё одну».</span>
+      <div><strong>DOTA қауым<span>.</span></strong><p>Наши лобби. Наши катки.</p></div>
+      <span class="footer-note">Собираемся большой компанией, играем своими составами.<br>Сегодня соперники по сетке — завтра снова одна команда.</span>
       <span class="footer-year">GG, WP <AppIcon name="sparkles" :size="15" /> <span>© 2026</span></span>
     </footer>
   </div>

@@ -51,7 +51,16 @@ assert.equal(new Set(players.map(player => player.id)).size, players.length, 'Pl
 const profileDirectories = await readdir(resolve(outputDirectory, 'players'), { withFileTypes: true })
 assert.equal(profileDirectories.filter(item => item.isDirectory()).length, players.length, 'Generate exactly one directory for every player')
 
-const documents = [{ path: 'index.html', html: indexHtml }]
+const tournamentPath = 'tournament/index.html'
+await requireFile(tournamentPath)
+const tournamentHtml = await readFile(resolve(outputDirectory, tournamentPath), 'utf8')
+assert.ok(tournamentHtml.includes('id="tournament-heading"'), 'Tournament page must be prerendered')
+for (const label of ['4 команды', '6 команд', '8 команд']) {
+  assert.ok(tournamentHtml.includes(`aria-label="${label}"`), `Tournament must offer ${label}`)
+}
+assert.ok(indexAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === `${baseURL}tournament`), 'Homepage must link to the tournament under the deployment base')
+
+const documents = [{ path: 'index.html', html: indexHtml }, { path: tournamentPath, html: tournamentHtml }]
 for (const player of players) {
   const path = `players/${player.id}/index.html`
   await requireFile(path)
@@ -96,4 +105,4 @@ for (const path of stylesheetPaths) {
 }
 assert.ok(stylesheetSize > 1000, 'Generated CSS must contain the application styles')
 
-console.log(`Static output verified: ${players.length} prerendered profiles, ${checkedAssets.size} assets, ${stylesheetPaths.size} stylesheets; base ${baseURL}`)
+console.log(`Static output verified: tournament, ${players.length} prerendered profiles, ${checkedAssets.size} assets, ${stylesheetPaths.size} stylesheets; base ${baseURL}`)

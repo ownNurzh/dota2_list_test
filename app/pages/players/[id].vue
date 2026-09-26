@@ -32,14 +32,14 @@ const relatedPlayers = computed(() => players
 
 useSeoMeta({
   title: () => `${player.value?.nickname ?? 'Игрок'} — DOTA қауым`,
-  description: () => `${player.value?.nickname} из нашего стака: ${player.value?.role}, ${formatNumber(player.value?.mmr ?? 0)} MMR, любимые пики и байки из пати.`,
+  description: () => `${player.value?.nickname} из наших лобби: ${player.value?.role}, ${formatNumber(player.value?.mmr ?? 0)} MMR, любимые пики и байки из лобби.`,
 })
 </script>
 
 <template>
   <div v-if="player" class="page-container player-page">
     <nav class="breadcrumbs" aria-label="Хлебные крошки">
-      <NuxtLink to="/"><AppIcon name="arrow-left" :size="15" /> Наш стак</NuxtLink>
+      <NuxtLink to="/"><AppIcon name="arrow-left" :size="15" /> Наши игроки</NuxtLink>
       <AppIcon name="chevron-right" :size="13" />
       <span aria-current="page">{{ player.nickname }}</span>
     </nav>
@@ -102,7 +102,7 @@ useSeoMeta({
               </div>
             </div>
           </div>
-          <div class="skills-footnote"><AppIcon name="info" :size="15" /><p>Условные оценки для нашего стака. Не статистика матчей.</p></div>
+          <div class="skills-footnote"><AppIcon name="info" :size="15" /><p>Условные оценки для наших лобби. Не статистика матчей.</p></div>
         </section>
 
         <section class="panel heroes-panel" aria-labelledby="heroes-title">
@@ -124,7 +124,7 @@ useSeoMeta({
 
       <aside class="profile-sidebar" aria-label="Информация об игроке">
         <section class="panel notes-panel">
-          <div class="note-title"><AppIcon name="users" :size="18" /><h2>Байки из пати</h2></div>
+          <div class="note-title"><AppIcon name="users" :size="18" /><h2>Байки из лобби</h2></div>
           <div v-if="player.tags.length" class="player-tags"><span v-for="tag in player.tags" :key="tag" class="tag">{{ tag }}</span></div>
           <div class="community-note">
             <span class="quote-mark" aria-hidden="true">“</span>
@@ -152,7 +152,7 @@ useSeoMeta({
     </div>
 
     <section v-if="relatedPlayers.length" class="related-section" aria-labelledby="related-title">
-      <div class="section-header"><div><span class="eyebrow section-kicker">ТОЖЕ ИЗ НАШИХ</span><h2 id="related-title">На той же позиции</h2></div><NuxtLink to="/" class="all-players-link">Весь стак <AppIcon name="arrow-right" :size="17" /></NuxtLink></div>
+      <div class="section-header"><div><span class="eyebrow section-kicker">ТОЖЕ ИЗ НАШИХ</span><h2 id="related-title">На той же позиции</h2></div><NuxtLink to="/" class="all-players-link">Все наши <AppIcon name="arrow-right" :size="17" /></NuxtLink></div>
       <div class="related-grid">
         <NuxtLink v-for="related in relatedPlayers" :key="related.id" :to="`/players/${related.id}`" class="related-player">
           <img @error="onHeroImageError" :src="getHeroImage(related.signatureHeroes[0] || 'Juggernaut')" alt="" loading="lazy" width="52" height="52" />
