@@ -1,13 +1,16 @@
 import {
   buildBracket,
+  changeTournamentFormat,
   createTournament,
   getChampion,
+  getTournamentMatchCount,
   parseTournament,
   renameTeam,
   resetResults,
   resizeTournament,
   setMatchWinner,
   shuffleTeams,
+  type TournamentFormat,
   type TournamentSize,
   type TournamentState,
 } from '~/utils/tournament'
@@ -52,7 +55,7 @@ export function useTournament() {
   const champion = computed(() => getChampion(state.value))
   const completedMatches = computed(() => rounds.value.flatMap(round => round.matches)
     .filter(match => match.status === 'complete').length)
-  const totalMatches = computed(() => state.value.size - 1)
+  const totalMatches = computed(() => getTournamentMatchCount(state.value))
   const hasResults = computed(() => Object.keys(state.value.results).length > 0)
 
   return {
@@ -67,6 +70,7 @@ export function useTournament() {
     chooseWinner: (matchId: string, winnerId: string | null) => apply(setMatchWinner(state.value, matchId, winnerId)),
     rename: (id: string, name: string) => apply(renameTeam(state.value, id, name)),
     resize: (size: TournamentSize) => apply(resizeTournament(state.value, size)),
+    changeFormat: (format: TournamentFormat) => apply(changeTournamentFormat(state.value, format)),
     shuffle: () => apply(shuffleTeams(state.value)),
     reset: () => apply(resetResults(state.value)),
   }

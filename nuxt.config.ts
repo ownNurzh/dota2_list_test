@@ -13,7 +13,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'ru' },
       title: 'DOTA қауым — свои лобби и турнирные катки',
       meta: [
-        { name: 'description', content: 'Собираемся по 30 человек, делимся на пятёрки и играем друг против друга в лобби Dota 2. Наши игроки и турнирная сетка на 4, 6 или 8 команд.' },
+        { name: 'description', content: 'Собираемся по 30 человек, делимся на пятёрки и играем друг против друга в лобби Dota 2. Турниры на 4, 6 и 8 команд: одиночное выбывание или верхняя и нижняя сетки.' },
         { name: 'theme-color', content: '#101114' },
       ],
       link: [{ rel: 'icon', type: 'image/svg+xml', href: `${baseURL}favicon.svg` }],

@@ -58,6 +58,12 @@ assert.ok(tournamentHtml.includes('id="tournament-heading"'), 'Tournament page m
 for (const label of ['4 команды', '6 команд', '8 команд']) {
   assert.ok(tournamentHtml.includes(`aria-label="${label}"`), `Tournament must offer ${label}`)
 }
+for (const label of ['Одиночное выбывание', 'Двойное выбывание']) {
+  assert.ok(tournamentHtml.includes(`aria-label="${label}"`), `Tournament must offer ${label}`)
+}
+for (const bracket of ['upper', 'lower', 'final']) {
+  assert.ok(tournamentHtml.includes(`id="${bracket}-bracket-heading"`), `Default double-elimination page must render the ${bracket} bracket`)
+}
 assert.ok(indexAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === `${baseURL}tournament`), 'Homepage must link to the tournament under the deployment base')
 
 const documents = [{ path: 'index.html', html: indexHtml }, { path: tournamentPath, html: tournamentHtml }]
