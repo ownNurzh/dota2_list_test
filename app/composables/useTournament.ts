@@ -9,6 +9,7 @@ import {
   resetResults,
   resizeTournament,
   setMatchWinner,
+  setTeamPlayers,
   shuffleTeams,
   type TournamentFormat,
   type TournamentSize,
@@ -21,6 +22,8 @@ export function useTournament() {
   const state = useState<TournamentState>('lobby-tournament', () => createTournament(6))
   const ready = useState<boolean>('lobby-tournament-ready', () => false)
   const storageAvailable = useState<boolean>('lobby-tournament-storage', () => true)
+  const { save, historyError } = useTournamentHistory()
+  const archivedId = ref<string | null>(null)
 
   onMounted(() => {
     if (ready.value) return
@@ -42,6 +45,7 @@ export function useTournament() {
   function apply(next: TournamentState) {
     if (!ready.value || next === state.value) return
     state.value = next
+    archivedId.value = null
 
     try {
       localStorage.setItem(storageKey, JSON.stringify(next))
@@ -67,8 +71,15 @@ export function useTournament() {
     completedMatches,
     totalMatches,
     hasResults,
+    archivedId,
+    archiveError: historyError,
+    archive: (title: string, date: string) => {
+      archivedId.value = save(state.value, title, date)
+      return Boolean(archivedId.value)
+    },
     chooseWinner: (matchId: string, winnerId: string | null) => apply(setMatchWinner(state.value, matchId, winnerId)),
     rename: (id: string, name: string) => apply(renameTeam(state.value, id, name)),
+    setRoster: (id: string, playerIds: string[]) => apply(setTeamPlayers(state.value, id, playerIds)),
     resize: (size: TournamentSize) => apply(resizeTournament(state.value, size)),
     changeFormat: (format: TournamentFormat) => apply(changeTournamentFormat(state.value, format)),
     shuffle: () => apply(shuffleTeams(state.value)),

@@ -7,11 +7,14 @@ const {
   storageAvailable,
   rounds,
   champion,
-  completedMatches,
   totalMatches,
   hasResults,
   chooseWinner,
   rename,
+  setRoster,
+  archive,
+  archiveError,
+  archivedId,
   resize,
   changeFormat,
   shuffle,
@@ -20,8 +23,8 @@ const {
 
 const teamCounts: TournamentSize[] = [4, 6, 8]
 const modes: { value: TournamentFormat; name: string; description: string; icon: string }[] = [
-  { value: 'single', name: 'Одиночное выбывание', description: 'Одно поражение — вылет. Быстрый кубок.', icon: 'swords' },
-  { value: 'double', name: 'Двойное выбывание', description: 'После первого поражения — в нижнюю сетку.', icon: 'shield' },
+  { value: 'single', name: 'Одиночное выбывание', description: 'В плей-офф: одно поражение — вылет.', icon: 'swords' },
+  { value: 'double', name: 'Двойное выбывание', description: 'В плей-офф: после первого поражения — в нижнюю сетку.', icon: 'shield' },
 ]
 type PendingAction = { type: 'resize'; size: TournamentSize }
   | { type: 'format'; format: TournamentFormat }
@@ -29,29 +32,17 @@ type PendingAction = { type: 'resize'; size: TournamentSize }
   | { type: 'reset' }
 const pendingAction = ref<PendingAction | null>(null)
 const announcement = ref('')
-const progress = computed(() => completedMatches.value / totalMatches.value * 100)
+const archiveTitle = ref('Вечерний кубок')
+const archiveDate = ref('')
+onMounted(() => {
+  const today = new Date()
+  archiveDate.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+})
 const matchesById = computed(() => new Map(rounds.value.flatMap(round => round.matches).map(match => [match.id, match])))
 const hasFinalReset = computed(() => matchesById.value.has('gf-reset'))
 const expectedMatches = computed(() => state.value.format === 'double' && !champion.value && !hasFinalReset.value
   ? `${totalMatches.value}–${totalMatches.value + 1}`
   : String(totalMatches.value))
-const bracketGroups = computed(() => [
-  {
-    id: 'upper', headingId: 'upper-bracket-heading', title: state.value.format === 'double' ? 'Верхняя сетка' : 'Основная сетка',
-    caption: state.value.format === 'double' ? 'Победители идут дальше. Проигравшие получают ещё один шанс внизу.' : 'Победители идут дальше. Поражение завершает путь к кубку.',
-    icon: 'shield', rounds: rounds.value.filter(round => round.bracket === 'upper'),
-  },
-  {
-    id: 'lower', headingId: 'lower-bracket-heading', title: 'Нижняя сетка',
-    caption: 'Ещё одна жизнь. Здесь второе поражение означает выбывание.',
-    icon: 'reset', rounds: rounds.value.filter(round => round.bracket === 'lower'),
-  },
-  {
-    id: 'final', headingId: 'final-bracket-heading', title: 'Гранд-финал',
-    caption: 'Победители обеих сеток встречаются за кубок. У команды сверху всё ещё есть право на одно поражение.',
-    icon: 'trophy', rounds: rounds.value.filter(round => round.bracket === 'final'),
-  },
-].filter(group => group.rounds.length))
 const pendingTitle = computed(() => {
   if (pendingAction.value?.type === 'resize') return `Перейти на ${pendingAction.value.size} ${pendingAction.value.size === 4 ? 'команды' : 'команд'}?`
   if (pendingAction.value?.type === 'format') return pendingAction.value.format === 'double' ? 'Добавить нижнюю сетку?' : 'Перейти на одиночное выбывание?'
@@ -72,23 +63,17 @@ function teamName(id: string | null) {
 function matchReference(id: string) {
   if (id === 'gf-m0') return 'ГФ'
   if (id === 'gf-reset') return 'ГФ2'
-  const parts = /^([rl])(\d+)-m(\d+)$/.exec(id)
-  return parts ? `${parts[1] === 'r' ? 'В' : 'Н'}${Number(parts[2]) + 1}.${Number(parts[3]) + 1}` : id
-}
-
-function sourceLabel(source: Match['sources'][number]) {
-  if (source.type === 'seed') return source.seed > state.value.teams.length ? 'Свободный слот' : `Посев ${String(source.seed).padStart(2, '0')}`
-  const feeder = matchesById.value.get(source.matchId)
-  if (feeder?.status === 'bye' && (source.type === 'loser' || !feeder.winnerId)) return 'Свободный слот'
-  return `${source.type === 'winner' ? 'Победитель' : 'Проигравший'} ${matchReference(source.matchId)}`
+  const parts = /^([rlg])(\d+)-m(\d+)$/.exec(id)
+  return parts ? `${parts[1] === 'r' ? 'В' : parts[1] === 'l' ? 'Н' : 'Г'}${Number(parts[2]) + 1}.${Number(parts[3]) + 1}` : id
 }
 
 function canChoose(match: Match) {
   return ready.value && (match.status === 'ready' || match.status === 'complete')
 }
 
-function selectWinner(match: Match, id: string) {
-  if (!canChoose(match)) return
+function selectWinner(matchId: string, id: string) {
+  const match = matchesById.value.get(matchId)
+  if (!match || !canChoose(match)) return
   const deselect = match.winnerId === id
   chooseWinner(match.id, deselect ? null : id)
   announcement.value = deselect
@@ -124,27 +109,18 @@ function confirmAction() {
   if (pendingAction.value) applyAction(pendingAction.value)
 }
 
-function renameFromInput(id: string, event: Event) {
-  const input = event.target as HTMLInputElement
-  rename(id, input.value)
-  input.value = teamName(id)
-}
-
-function blurOnEnter(event: KeyboardEvent) {
-  (event.target as HTMLInputElement).blur()
-}
-
 useSeoMeta({
   title: 'Кубок своего лобби — DOTA қауым',
-  description: 'Кубок для своих: 4, 6 или 8 команд, одиночное или двойное выбывание с нижней сеткой. Матчи BO1 и свой чемпион лобби.',
+  description: 'Кубок нашего лобби: команды из своих игроков, круговой этап для шести команд и плей-офф. Одиночное или двойное выбывание, результаты и история турниров.',
 })
 </script>
 
 <template>
   <div class="page-container tournament-page">
-    <NuxtLink class="tournament-back" to="/">
-      <AppIcon name="arrow-left" :size="15" /> Наши игроки
-    </NuxtLink>
+    <div class="tournament-page-links">
+      <NuxtLink class="tournament-back" to="/"><AppIcon name="arrow-left" :size="15" /> Наши игроки</NuxtLink>
+      <NuxtLink class="tournament-back" to="/tournaments/history"><AppIcon name="trophy" :size="15" /> История турниров</NuxtLink>
+    </div>
 
     <section class="tournament-hero" aria-labelledby="tournament-heading">
       <div class="tournament-hero-copy">
@@ -189,7 +165,7 @@ useSeoMeta({
           <span class="mode-indicator"><AppIcon v-if="state.format === mode.value" name="check" :size="14" /></span>
         </button>
       </div>
-      <p class="mode-explanation">{{ state.format === 'double' ? 'Каждой команде — минимум две настоящие игры. Автоматические проходы не считаются матчами.' : 'Короткий формат: одна победа ведёт дальше, одно поражение завершает участие.' }}</p>
+      <p class="mode-explanation">{{ state.layout === 'round-robin' ? 'Шесть команд: каждая сыграет пять матчей в группе. Затем лучшие четыре выходят в выбранный плей-офф.' : state.format === 'double' ? 'Каждой команде — минимум две настоящие игры. Автоматические проходы не считаются матчами.' : 'Короткий формат: одна победа ведёт дальше, одно поражение завершает участие.' }}</p>
 
       <div class="format-row">
         <div class="format-selector" role="group" aria-label="Количество команд">
@@ -202,7 +178,7 @@ useSeoMeta({
           ><strong>{{ size }}</strong><span>{{ size === 4 ? 'команды' : 'команд' }}</span></button>
         </div>
         <div class="format-summary" aria-live="polite">
-          <span><AppIcon name="users" :size="16" /><strong>{{ state.size * 5 }}</strong> игроков</span>
+          <span><AppIcon name="users" :size="16" /><strong>{{ state.size * 5 }}</strong> мест</span>
           <span class="summary-divider" />
           <span><AppIcon name="swords" :size="16" /><strong>{{ expectedMatches }}</strong> {{ totalMatches === 3 ? 'матча' : 'матчей' }}</span>
         </div>
@@ -216,79 +192,26 @@ useSeoMeta({
         </div>
       </div>
 
-      <details class="team-editor">
-        <summary><span><AppIcon name="users" :size="16" /> Названия команд <small>{{ state.size }}</small></span><AppIcon name="chevron-down" :size="16" /></summary>
-        <div class="team-inputs">
-          <label v-for="(team, index) in state.teams" :key="`${state.size}-${team.id}`">
-            <span>ПОСЕВ {{ String(index + 1).padStart(2, '0') }}</span>
-            <input
-              type="text" :value="team.name" :aria-label="`Название команды ${index + 1}`"
-              maxlength="40" :disabled="!ready" autocomplete="off"
-              @change="renameFromInput(team.id, $event)" @keydown.enter="blurOnEnter"
-            >
-          </label>
-        </div>
-      </details>
+      <TournamentTeamEditor :state="state" :ready="ready" @rename="rename" @set-roster="setRoster" />
     </section>
 
-    <section class="bracket-section" aria-labelledby="bracket-heading">
-      <div class="bracket-heading">
-        <div><span class="eyebrow">ДО ПОСЛЕДНЕГО ТРОНА</span><h2 id="bracket-heading">Путь к кубку</h2></div>
-        <div class="tournament-progress">
-          <span><strong>{{ completedMatches }}</strong> / {{ totalMatches }} матчей</span>
-          <div role="progressbar" aria-label="Завершённые матчи" :aria-valuenow="completedMatches" :aria-valuemin="0" :aria-valuemax="totalMatches"><span :style="{ width: `${progress}%` }" /></div>
-        </div>
-      </div>
-      <p class="bracket-instructions">После матча нажми на победителя — команда пройдёт дальше. Повторное нажатие отменяет выбор.</p>
-      <div v-if="state.size === 6" class="bye-explanation">
-        <AppIcon name="info" :size="15" />
-        <p>Шесть команд: посевы №1 и №2 сразу в полуфинале{{ state.format === 'double' ? ' верхней сетки' : '' }}. Свободные слоты проходят автоматически, без игры.</p>
-      </div>
-      <p class="bracket-scroll-hint"><AppIcon name="arrow-right" :size="14" /> Листай сетку по горизонтали</p>
-
-      <section v-for="group in bracketGroups" :key="group.id" class="bracket-group" :class="`bracket-group-${group.id}`" :aria-labelledby="group.headingId">
-        <div class="bracket-group-heading">
-          <span class="bracket-group-icon"><AppIcon :name="group.icon" :size="19" /></span>
-          <div><h2 :id="group.headingId">{{ group.title }}</h2><p>{{ group.caption }}</p></div>
-        </div>
-        <div v-if="group.id === 'final'" class="final-rule" :class="{ 'reset-active': hasFinalReset }">
-          <AppIcon :name="hasFinalReset ? 'swords' : 'info'" :size="16" />
-          <p v-if="champion">Кубок разыгран {{ hasFinalReset ? 'в решающем матче ГФ2' : 'в гранд-финале' }}. GG, WP!</p>
-          <p v-else-if="hasFinalReset">Команда из нижней сетки выиграла первый финал. Теперь у обеих команд по одному поражению — кубок решит матч ГФ2.</p>
-          <p v-else>Если победит команда из нижней сетки, появится решающий матч ГФ2. Победа команды из верхней сетки сразу приносит кубок.</p>
-        </div>
-        <div class="bracket-scroller" tabindex="0" role="region" :aria-label="`${group.title}, прокручивается по горизонтали`">
-          <div
-            class="bracket-grid" :class="group.id === 'upper' ? 'bracket-grid-tree' : 'bracket-grid-flow'"
-            :style="{ '--rounds': group.rounds.length, '--opening-matches': group.rounds[0]?.matches.length ?? 0 }"
-          >
-            <section v-for="(round, roundIndex) in group.rounds" :key="round.id" class="bracket-round" :aria-labelledby="`heading-${round.id}`">
-              <div class="round-heading"><span>{{ String(roundIndex + 1).padStart(2, '0') }}</span><h3 :id="`heading-${round.id}`">{{ round.name }}</h3><small>BO1</small><AppIcon v-if="group.id !== 'upper' && roundIndex < group.rounds.length - 1" class="round-flow-arrow" name="arrow-right" :size="15" /></div>
-              <div class="round-matches">
-                <div
-                  v-for="match in round.matches" :key="match.id" class="match-position"
-                  :class="{ 'has-feeders': group.id === 'upper' && roundIndex > 0 }"
-                  :style="group.id === 'upper' ? { gridRow: `span ${2 ** roundIndex}`, '--feeder-height': `${196 * 2 ** (roundIndex - 1)}px` } : {}"
-                >
-                  <TournamentMatch
-                    :match="match" :teams="state.teams" :ready="ready"
-                    :label="matchReference(match.id)" :source-labels="match.sources.map(sourceLabel)"
-                    @select="selectWinner(match, $event)"
-                  />
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </section>
-
-      <p class="bracket-change-note"><AppIcon name="info" :size="14" /> При изменении победителя зависимые результаты сбрасываются{{ state.format === 'double' ? ' в обеих сетках и финале' : '' }}. Метки В / Н / ГФ помогают найти исходный матч.</p>
-    </section>
+    <TournamentBracket :state="state" :ready="ready" @select="selectWinner" />
 
     <section v-if="champion" class="champion-panel" aria-labelledby="champion-heading">
       <span class="champion-icon"><AppIcon name="trophy" :size="42" /></span>
       <div><span class="eyebrow">ЧЕМПИОН НАШЕГО ЛОББИ</span><h2 id="champion-heading">{{ champion.name }}</h2><p>GG, WP. Кубок у своих — теперь есть что вспомнить.</p></div>
       <AppIcon class="champion-sparkle" name="sparkles" :size="37" />
+    </section>
+
+    <section v-if="champion" class="archive-finish-panel" aria-labelledby="archive-finish-heading">
+      <div><span class="eyebrow">ОСТАВИМ В ИСТОРИИ</span><h2 id="archive-finish-heading">Сохранить этот кубок</h2><p>Составы, результаты и победитель останутся в истории. Файл для передачи друзьям можно скачать там же.</p></div>
+      <form v-if="!archivedId" class="archive-form" @submit.prevent="archive(archiveTitle, archiveDate)">
+        <label><span>Название турнира</span><input v-model="archiveTitle" type="text" maxlength="80" required placeholder="Вечерний кубок"></label>
+        <label><span>Дата турнира</span><input v-model="archiveDate" type="date" required></label>
+        <button type="submit" class="button button-primary" :disabled="!ready || !archiveTitle.trim() || !archiveDate"><AppIcon name="trophy" :size="17" /> Сохранить в историю</button>
+      </form>
+      <p v-if="archiveError" class="archive-error" role="alert">{{ archiveError }}</p>
+      <NuxtLink v-if="archivedId" :to="{ path: '/tournaments/history', query: { id: archivedId } }" class="button archive-saved"><AppIcon name="check" :size="17" /> Кубок сохранён. Открыть историю <AppIcon name="arrow-right" :size="16" /></NuxtLink>
     </section>
 
     <div class="tournament-storage-note" :class="{ 'storage-unavailable': !storageAvailable }">
@@ -300,6 +223,19 @@ useSeoMeta({
 </template>
 
 <style scoped>
+.tournament-page-links { display: flex; align-items: center; justify-content: space-between; gap: 13px; }
+.archive-finish-panel { margin-top: 20px; padding: 27px; border: 1px solid #ad8bff24; border-radius: 12px; background: #ad8bff04; }
+.archive-finish-panel .eyebrow { font-size: 7px; color: #9077a3; }
+.archive-finish-panel h2 { margin-top: 9px; font-family: var(--font-heading); font-size: 18px; font-weight: 500; color: #c7aedc; }
+.archive-finish-panel > div > p { margin-top: 13px; color: #9f85ac; font-size: 11px; line-height: 1.9; max-width: 650px; }
+.archive-form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 13px; margin-top: 20px; }
+.archive-form label { display: flex; flex: 1; flex-direction: column; gap: 8px; min-width: 150px; }
+.archive-form label > span { color: #a48ab2; font-size: 10px; }
+.archive-form input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #ffffff17; border-radius: 6px; color: #d4bfe2; background: #131017; font-size: 12px; }
+.archive-form .button { min-height: 44px; }
+.archive-error { margin-top: 14px; color: #dcb39b; font-size: 11px; line-height: 1.8; }
+.archive-saved { margin-top: 18px; color: #c6df9d; border: 1px solid #c7e68a30; background: #c7e68a07; font-size: 11px; }
+@media(max-width:520px) { .tournament-page-links { gap: 10px; }.tournament-page-links .tournament-back { font-size: 9px; }.archive-finish-panel { padding: 21px 17px; }.archive-finish-panel h2 { font-size: 15px; }.archive-form { flex-direction: column; align-items: stretch; }.archive-form label { min-width: 0; }.archive-saved { width: 100%; font-size: 10px; } }
 .tournament-page { min-width: 0; padding-top: 27px; padding-bottom: 18px; }
 .tournament-back { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-bottom: 15px; color: #93909f; font-size: 11px; }
 .tournament-back:hover { color: #d0eb91; }
@@ -319,8 +255,8 @@ useSeoMeta({
 .emblem-caption { color: #a2ac8c; font-size: 7px; letter-spacing: 2px; }
 .tournament-setup { margin-top: 22px; padding: 27px; border-radius: 14px; }
 .setup-topline { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.setup-topline .eyebrow, .bracket-heading .eyebrow { color: #81788e; font-size: 7px; }
-.setup-topline h2, .bracket-heading h2 { margin-top: 8px; font-family: var(--font-heading); font-size: 20px; font-weight: 550; letter-spacing: -.04em; }
+.setup-topline .eyebrow { color: #81788e; font-size: 7px; }
+.setup-topline h2 { margin-top: 8px; font-family: var(--font-heading); font-size: 20px; font-weight: 550; letter-spacing: -.04em; }
 .tournament-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
 .tournament-action { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 9px 12px; border: 1px solid #ffffff13; border-radius: 6px; color: #aaa0b6; font-size: 10px; transition: border-color .2s, color .2s; }
 .tournament-action:hover:not(:disabled) { color: #d5c3ee; border-color: #af8fe94a; }
@@ -358,69 +294,12 @@ useSeoMeta({
 .tournament-confirm p { margin-top: 7px; color: #a396b3; font-size: 11px; line-height: 1.7; }
 .confirm-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .confirm-actions .button { font-size: 10px; min-height: 40px; }
-.team-editor { margin-top: 25px; border-top: 1px solid #ffffff0b; }
-.team-editor > summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 47px; padding-top: 8px; cursor: pointer; color: #b7a7c8; list-style: none; font-size: 11px; }
-.team-editor > summary::-webkit-details-marker { display: none; }
-.team-editor > summary > span { display: inline-flex; align-items: center; gap: 8px; }
-.team-editor > summary small { padding: 2px 6px; border-radius: 4px; border: 1px solid #ffffff12; color: #7b7088; font-size: 9px; }
-.team-editor > summary > svg { transition: transform .2s; }
 .team-editor[open] > summary > svg { transform: rotate(180deg); }
-.team-inputs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 17px 14px; margin-top: 17px; }
-.team-inputs label { display: flex; flex-direction: column; min-width: 0; gap: 8px; }
-.team-inputs label > span { color: #796e87; font-size: 7px; letter-spacing: 1px; }
-.team-inputs input { width: 100%; min-width: 0; min-height: 43px; padding: 10px 12px; border: 1px solid #ffffff11; border-radius: 6px; background: #111217; color: #d3cbdc; font-size: 11px; }
-.team-inputs input:focus { border-color: #ad8bff70; }
-.bracket-section { min-width: 0; margin-top: 39px; }
-.bracket-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
 .tournament-progress { width: 135px; flex-shrink: 0; text-align: right; }
 .tournament-progress > span { color: #7f758d; font-size: 10px; }
 .tournament-progress strong { color: #d0eb91; font-weight: 650; }
 .tournament-progress > div { height: 3px; margin-top: 9px; overflow: hidden; border-radius: 5px; background: #ffffff0b; }
 .tournament-progress > div > span { display: block; height: 100%; border-radius: inherit; background: #d0eb91; transition: width .3s; }
-.bracket-instructions { margin-top: 16px; color: #92869f; font-size: 11px; line-height: 1.9; }
-.bye-explanation { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; color: #9f8cbc; }
-.bye-explanation svg { margin-top: 2px; }
-.bye-explanation p { font-size: 10px; line-height: 1.9; }
-.bracket-scroll-hint { display: none; align-items: center; gap: 7px; margin-top: 16px; color: #887398; font-size: 9px; }
-.bracket-group { min-width: 0; margin-top: 29px; padding: 25px 23px 7px; border: 1px solid #ad8bff14; border-radius: 12px; background: #ad8bff02; }
-.bracket-group-heading { display: flex; align-items: flex-start; gap: 12px; }
-.bracket-group-icon { display: grid; place-items: center; width: 37px; height: 37px; flex-shrink: 0; border: 1px solid #ad8bff21; border-radius: 9px; color: #b69adf; background: #ad8bff05; }
-.bracket-group-heading > div { min-width: 0; }
-.bracket-group-heading h2 { color: #d5c4e2; font-family: var(--font-heading); font-size: 16px; font-weight: 500; letter-spacing: -.03em; line-height: 1.6; }
-.bracket-group-heading p { margin-top: 6px; color: #8f7c9d; font-size: 10px; line-height: 1.85; }
-.bracket-group-lower { border-color: #cf9c741d; background: #c9916603; }
-.bracket-group-lower .bracket-group-icon { color: #d1a580; border-color: #cf9c7426; background: #cf9c7407; }
-.bracket-group-lower .bracket-group-heading h2 { color: #d3b79e; }
-.bracket-group-lower .bracket-group-heading p { color: #9b8675; }
-.bracket-group-final { border-color: #c7e68a20; background: #c7e68a03; }
-.bracket-group-final .bracket-group-icon { color: #c3db95; border-color: #c7e68a26; background: #c7e68a07; }
-.bracket-group-final .bracket-group-heading h2 { color: #cbdcb0; }
-.bracket-group-final .bracket-group-heading p { color: #8c9b7a; }
-.final-rule { display: flex; align-items: flex-start; gap: 8px; margin-top: 20px; padding: 13px 15px; border-radius: 7px; border: 1px solid #c7e68a10; background: #c7e68a04; color: #9eaf86; }
-.final-rule svg { margin-top: 2px; }
-.final-rule p { font-size: 10px; line-height: 1.9; }
-.final-rule.reset-active { border-color: #c7e68a35; background: #c7e68a0b; color: #c5dc9f; }
-.bracket-scroller { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: #50405f #1c1822; margin-top: 23px; padding: 3px 2px 17px; border-radius: 8px; }
-.bracket-scroller:focus-visible { outline: 2px solid #aa8aff; outline-offset: 5px; }
-.bracket-grid { --round-gap: 36px; display: grid; grid-template-columns: repeat(var(--rounds), minmax(260px, 1fr)); gap: var(--round-gap); min-width: calc(var(--rounds) * 260px + (var(--rounds) - 1) * var(--round-gap)); }
-.bracket-round { min-width: 0; }
-.round-heading { position: relative; display: flex; align-items: center; gap: 9px; min-height: 36px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #ffffff0c; }
-.round-heading > span { color: #675972; font-size: 9px; }
-.round-heading h3 { color: #c7b5d5; font-size: 12px; font-weight: 650; }
-.round-heading small { margin-left: auto; color: #675873; font-size: 8px; }
-.round-flow-arrow { position: absolute; right: -26px; top: 3px; color: #75624c; }
-.round-matches { display: grid; grid-template-rows: repeat(var(--opening-matches), 176px); gap: 20px; }
-.match-position { position: relative; align-self: center; height: 176px; min-width: 0; }
-.bracket-grid-tree .bracket-round:not(:last-child) .match-position:after { content: ''; position: absolute; right: -19px; top: 50%; width: 18px; height: 1px; background: #50425f; }
-.match-position.has-feeders:before { content: ''; position: absolute; left: -19px; top: 50%; width: 18px; height: var(--feeder-height); transform: translateY(-50%); border-left: 1px solid #50425f; background: linear-gradient(#50425f, #50425f) center / 100% 1px no-repeat; }
-.bracket-grid-flow .round-matches { display: flex; flex-direction: column; }
-.bracket-grid-flow .match-position { width: 100%; align-self: stretch; }
-.bracket-group-lower .round-heading h3 { color: #c3a78d; }
-.bracket-group-lower .round-heading > span, .bracket-group-lower .round-heading small { color: #927457; }
-.bracket-group-final .bracket-grid { max-width: 760px; }
-.bracket-group-final .round-heading h3 { color: #b9c7a1; }
-.bracket-change-note { display: flex; align-items: flex-start; gap: 7px; margin-top: 12px; color: #70627e; font-size: 9px; line-height: 1.9; }
-.bracket-change-note svg { margin-top: 2px; }
 .champion-panel { position: relative; display: flex; align-items: center; gap: 27px; overflow: hidden; margin-top: 27px; padding: 29px 32px; border: 1px solid #cce7942c; border-radius: 13px; background: radial-gradient(ellipse at 95% 0, #cce79414, transparent 65%), #1c211b; }
 .champion-icon { display: grid; place-items: center; flex-shrink: 0; width: 79px; height: 79px; border: 1px solid #cce79422; border-radius: 18px; background: #cce79408; color: #d0eb91; }
 .champion-panel > div { min-width: 0; }
@@ -446,11 +325,8 @@ useSeoMeta({
   .mode-selector > button { padding: 14px; gap: 10px; }
   .mode-icon { width: 33px; height: 33px; }
   .mode-copy strong { font-size: 11px; }
-  .team-inputs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 940px) {
-  .bracket-scroll-hint { display: flex; }
-  .bracket-scroller { margin-top: 18px; }
 }
 @media (max-width: 700px) {
   .tournament-hero { padding: 29px; }
@@ -466,8 +342,7 @@ useSeoMeta({
   .mode-selector { grid-template-columns: minmax(0, 1fr); margin-top: 22px; gap: 9px; }
   .mode-selector > button { min-height: 76px; padding: 15px; }
   .mode-copy strong { font-size: 12px; }
-  .team-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .setup-topline h2, .bracket-heading h2 { font-size: 19px; }
+  .setup-topline h2 { font-size: 19px; }
   .tournament-progress { width: 105px; }
   .champion-panel { gap: 20px; padding: 25px; }
   .champion-panel h2 { font-size: 21px; }
@@ -505,26 +380,8 @@ useSeoMeta({
   .tournament-confirm { padding: 15px; }
   .confirm-actions { width: 100%; }
   .confirm-actions .button { flex: 1; padding-inline: 10px; }
-  .team-editor { margin-top: 20px; }
-  .team-inputs { gap: 15px 10px; padding-bottom: 9px; }
-  .team-inputs input { padding-inline: 10px; font-size: 11px; }
-  .bracket-section { margin-top: 30px; }
-  .bracket-heading { gap: 12px; }
-  .bracket-heading h2 { font-size: 17px; }
-  .bracket-heading .eyebrow { font-size: 6px; letter-spacing: 1px; }
   .tournament-progress { width: 88px; }
   .tournament-progress > span { font-size: 9px; }
-  .bracket-instructions { font-size: 11px; }
-  .bye-explanation p { font-size: 10px; }
-  .bracket-group { padding: 19px 14px 4px; margin-top: 20px; }
-  .bracket-group-heading { gap: 10px; }
-  .bracket-group-heading h2 { font-size: 14px; }
-  .bracket-group-heading p { font-size: 10px; }
-  .bracket-group-icon { width: 31px; height: 31px; border-radius: 8px; }
-  .bracket-group-icon svg { width: 16px; }
-  .final-rule { padding: 12px; gap: 7px; }
-  .bracket-grid { grid-template-columns: repeat(var(--rounds), 260px); }
-  .bracket-change-note { font-size: 9px; }
   .champion-panel { align-items: flex-start; gap: 15px; padding: 22px 18px; }
   .champion-icon { width: 43px; height: 43px; border-radius: 10px; }
   .champion-icon svg { width: 25px; }
@@ -535,9 +392,6 @@ useSeoMeta({
 }
 @media (max-width: 360px) {
   .tournament-action { font-size: 7px; gap: 5px; }
-  .bracket-heading h2 { font-size: 15px; }
-  .team-inputs { grid-template-columns: minmax(0, 1fr); }
-  .bracket-grid { grid-template-columns: repeat(var(--rounds), 250px); min-width: calc(var(--rounds) * 250px + (var(--rounds) - 1) * var(--round-gap)); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }

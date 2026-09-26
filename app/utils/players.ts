@@ -1,4 +1,4 @@
-import { statDefinitions } from '../data/players.ts'
+import { roleDefinitions, statDefinitions } from '../data/players.ts'
 import type { Player, Role, Tier } from '../data/players.ts'
 
 export type PlayerSort = 'rating-desc' | 'mmr-desc' | 'mmr-asc' | 'name-asc'
@@ -13,6 +13,10 @@ export interface PlayerFilters {
 /** Rounded weighted score on a 0–100 scale, based on the example characteristics. */
 export function calculateRating(stats: Player['stats']): number {
   return Math.round(statDefinitions.reduce((score, stat) => score + stats[stat.key] * stat.weight, 0))
+}
+
+export function formatRole(role: Role): string {
+  return `${role} · ${roleDefinitions[role].label}`
 }
 
 const heroSlugs: Record<string, string> = {
@@ -58,6 +62,7 @@ const heroSlugs: Record<string, string> = {
   hoodwink: 'hoodwink',
   invoker: 'invoker',
   magnus: 'magnataur',
+  'queen of pain': 'queenofpain',
 }
 
 export function getHeroSlug(hero: string): string {
@@ -85,7 +90,9 @@ export function filterPlayers(source: Player[], filters: PlayerFilters = {}): Pl
     const searchable = [
       player.nickname,
       player.fullName,
-      player.role,
+      formatRole(player.role),
+      roleDefinitions[player.role].englishLabel,
+      `Позиция ${player.role}`,
       player.tier,
       String(player.mmr),
       player.notes,

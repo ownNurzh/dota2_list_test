@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { players, statDefinitions } from '~/data/players'
-import { calculateRating, formatNumber, getHeroImage } from '~/utils/players'
+import { calculateRating, formatNumber, formatRole, getHeroImage } from '~/utils/players'
 
 definePageMeta({
   validate: route => typeof route.params.id === 'string' && players.some(player => player.id === route.params.id),
@@ -18,10 +18,6 @@ const { isFavorite, toggleFavorite } = useFavorites()
 const rating = computed(() => player.value ? calculateRating(player.value.stats) : 0)
 const favorite = computed(() => player.value ? isFavorite(player.value.id) : false)
 const mainHero = computed(() => player.value?.signatureHeroes[0] || 'Juggernaut')
-const rolePositions: Record<string, string> = {
-  Carry: 'Позиция 01', Mid: 'Позиция 02', Offlane: 'Позиция 03',
-  'Soft Support': 'Позиция 04', 'Hard Support': 'Позиция 05',
-}
 const strongestStat = computed(() => player.value
   ? [...statDefinitions].sort((a, b) => player.value!.stats[b.key] - player.value!.stats[a.key])[0]
   : undefined)
@@ -32,7 +28,7 @@ const relatedPlayers = computed(() => players
 
 useSeoMeta({
   title: () => `${player.value?.nickname ?? 'Игрок'} — DOTA қауым`,
-  description: () => `${player.value?.nickname} из наших лобби: ${player.value?.role}, ${formatNumber(player.value?.mmr ?? 0)} MMR, любимые пики и байки из лобби.`,
+  description: () => `${player.value?.nickname} из наших лобби: ${player.value ? formatRole(player.value.role) : ''}, ${formatNumber(player.value?.mmr ?? 0)} MMR, любимые пики и байки из лобби.`,
 })
 </script>
 
@@ -57,14 +53,14 @@ useSeoMeta({
       <div class="profile-identity">
         <div class="identity-badges">
           <span class="tier-badge" :class="`tier-${player.tier.slice(-1)}`">{{ player.tier }}</span>
-          <span class="identity-role"><AppIcon name="swords" :size="14" /> {{ player.role }}</span>
+          <span class="identity-role"><AppIcon :name="player.role >= 4 ? 'shield' : 'swords'" :size="14" /> {{ formatRole(player.role) }}</span>
         </div>
         <h1 id="player-name">{{ player.nickname }}</h1>
         <div class="identity-subtitle">
           <img @error="onHeroImageError" v-if="player.signatureHeroes.length" :src="getHeroImage(mainHero)" :alt="mainHero" width="36" height="36" />
           <span>{{ player.fullName }}</span>
           <span class="subtitle-divider" />
-          <span>{{ rolePositions[player.role] || player.role }}</span>
+          <span>Позиция {{ player.role }}</span>
         </div>
       </div>
 
@@ -156,7 +152,7 @@ useSeoMeta({
       <div class="related-grid">
         <NuxtLink v-for="related in relatedPlayers" :key="related.id" :to="`/players/${related.id}`" class="related-player">
           <img @error="onHeroImageError" :src="getHeroImage(related.signatureHeroes[0] || 'Juggernaut')" alt="" loading="lazy" width="52" height="52" />
-          <div class="related-identity"><strong>{{ related.nickname }}</strong><span>{{ related.role }} <span>·</span> {{ formatNumber(related.mmr) }} MMR</span></div>
+          <div class="related-identity"><strong>{{ related.nickname }}</strong><span>{{ formatRole(related.role) }} <span>·</span> {{ formatNumber(related.mmr) }} MMR</span></div>
           <span class="related-rating">{{ calculateRating(related.stats) }}</span><AppIcon name="arrow-right" :size="16" />
         </NuxtLink>
       </div>

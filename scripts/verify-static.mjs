@@ -3,6 +3,8 @@ import { readFile, readdir, stat } from 'node:fs/promises'
 import { resolve, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { players } from '../app/data/players.ts'
+import { tournaments } from '../app/data/tournaments.ts'
+import { parseTournamentEntry } from '../app/utils/tournament-history.ts'
 
 const projectDirectory = fileURLToPath(new URL('../', import.meta.url))
 const outputDirectory = resolve(projectDirectory, '.output/public')
@@ -64,9 +66,22 @@ for (const label of ['Одиночное выбывание', 'Двойное в
 for (const bracket of ['upper', 'lower', 'final']) {
   assert.ok(tournamentHtml.includes(`id="${bracket}-bracket-heading"`), `Default double-elimination page must render the ${bracket} bracket`)
 }
+assert.ok(tournamentHtml.includes('id="group-standings-heading"'), 'Six-team tournament must prerender group standings')
+assert.ok(tournamentHtml.includes('id="group-bracket-heading"'), 'Six-team tournament must prerender round-robin games')
 assert.ok(indexAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === `${baseURL}tournament`), 'Homepage must link to the tournament under the deployment base')
 
-const documents = [{ path: 'index.html', html: indexHtml }, { path: tournamentPath, html: tournamentHtml }]
+const historyPath = 'tournaments/history/index.html'
+await requireFile(historyPath)
+const historyHtml = await readFile(resolve(outputDirectory, historyPath), 'utf8')
+assert.ok(historyHtml.includes('id="history-heading"'), 'Tournament history must be prerendered')
+assert.equal(new Set(tournaments.map(entry => entry.id)).size, tournaments.length, 'Published tournament IDs must be unique')
+for (const entry of tournaments) {
+  assert.ok(parseTournamentEntry(entry), `Invalid or unfinished published tournament: ${entry.id}`)
+  assert.ok(historyHtml.includes(escapeHtml(entry.title)), `History must render published tournament ${entry.id}`)
+}
+assert.ok(indexAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === `${baseURL}tournaments/history`), 'Navigation must link to tournament history')
+
+const documents = [{ path: 'index.html', html: indexHtml }, { path: tournamentPath, html: tournamentHtml }, { path: historyPath, html: historyHtml }]
 for (const player of players) {
   const path = `players/${player.id}/index.html`
   await requireFile(path)
@@ -111,4 +126,4 @@ for (const path of stylesheetPaths) {
 }
 assert.ok(stylesheetSize > 1000, 'Generated CSS must contain the application styles')
 
-console.log(`Static output verified: tournament, ${players.length} prerendered profiles, ${checkedAssets.size} assets, ${stylesheetPaths.size} stylesheets; base ${baseURL}`)
+console.log(`Static output verified: round-robin tournament, history (${tournaments.length} published), ${players.length} prerendered profiles, ${checkedAssets.size} assets, ${stylesheetPaths.size} stylesheets; base ${baseURL}`)

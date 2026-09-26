@@ -1,15 +1,36 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { players, roles, statDefinitions } from '../app/data/players.ts'
-import { calculateRating, filterPlayers, formatNumber, getHeroImage, getHeroSlug } from '../app/utils/players.ts'
+import { players, roleDefinitions, roles, statDefinitions } from '../app/data/players.ts'
+import { calculateRating, filterPlayers, formatNumber, formatRole, getHeroImage, getHeroSlug } from '../app/utils/players.ts'
 
-test('migration retains 31 players with unique IDs and corrects the duplicate and role typo', () => {
-  assert.equal(players.length, 31)
-  assert.equal(new Set(players.map(player => player.id)).size, 31)
+test('migration retains all 32 current players with unique IDs and numeric positions', () => {
+  assert.equal(players.length, 32)
+  assert.equal(new Set(players.map(player => player.id)).size, 32)
   assert.equal(players.find(player => player.id === 'p22')?.fullName, 'Чина')
   assert.equal(players.find(player => player.id === 'p31')?.nickname, 'Z')
-  assert.equal(players.find(player => player.nickname === 'Nrjn')?.role, 'Soft Support')
+  assert.equal(players.find(player => player.nickname === 'Nrjn')?.role, 4)
+  assert.deepEqual(roles, [1, 2, 3, 4, 5])
   for (const player of players) assert.ok(roles.includes(player.role))
+})
+
+test('newly added Daiteris retains the latest user data under a unique route', () => {
+  assert.deepEqual(players.find(player => player.id === 'p32'), {
+    id: 'p32', nickname: 'Daiteris', fullName: 'Искандер', role: 3, tier: 'Tier 1', mmr: 5000,
+    tags: [], notes: 'Чилл', avatar: null, signatureHeroes: ['Queen of Pain', 'Magnus'],
+    stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
+  })
+})
+
+test('numeric positions map to readable role names and remain searchable in both languages', () => {
+  assert.equal(formatRole(3), '3 · Оффлейнер')
+  assert.equal(roleDefinitions[4].englishLabel, 'Soft Support')
+  assert.equal(roleDefinitions[5].englishLabel, 'Hard Support')
+  for (const role of roles) {
+    const expected = filterPlayers(players, { role }).map(player => player.id)
+    assert.deepEqual(filterPlayers(players, { search: roleDefinitions[role].englishLabel }).map(player => player.id), expected)
+    assert.deepEqual(filterPlayers(players, { search: roleDefinitions[role].label }).map(player => player.id), expected)
+    assert.deepEqual(filterPlayers(players, { search: `Позиция ${role}` }).map(player => player.id), expected)
+  }
 })
 
 test('each player has five complete characteristics on a 0–100 scale', () => {
@@ -40,13 +61,13 @@ test('rating uses the defined weights and rounds the final result', () => {
 })
 
 test('search, role and tier combine and include hero names, names, notes and tags', () => {
-  assert.deepEqual(filterPlayers(players, { search: '  LION  ', role: 'Soft Support', tier: 'Tier 2' }).map(player => player.id).sort(), ['p10', 'p26'])
-  assert.deepEqual(filterPlayers(players, { search: 'liON', role: 'Carry', tier: 'Tier 2' }), [])
+  assert.deepEqual(filterPlayers(players, { search: '  LION  ', role: 4, tier: 'Tier 2' }).map(player => player.id).sort(), ['p10', 'p26'])
+  assert.deepEqual(filterPlayers(players, { search: 'liON', role: 1, tier: 'Tier 2' }), [])
   assert.equal(filterPlayers(players, { search: 'Мәдіна' })[0]?.nickname, 'Medievh')
   assert.ok(filterPlayers(players, { search: 'Аррррр' }).some(player => player.id === 'p6'))
   assert.equal(filterPlayers(players, { search: 'Микрофоны жох' })[0]?.nickname, 'TOfu')
   assert.ok(filterPlayers(players, { search: 'Tier 3' }).every(player => player.tier === 'Tier 3'))
-  assert.equal(filterPlayers(players, { role: 'all', tier: 'all', search: '   ' }).length, 31)
+  assert.equal(filterPlayers(players, { role: 'all', tier: 'all', search: '   ' }).length, 32)
   assert.deepEqual(filterPlayers(players, { search: 'no-such-player' }), [])
 })
 
@@ -72,6 +93,7 @@ test('hero names use canonical CDN asset paths and unknown heroes have a fallbac
   assert.equal(getHeroSlug('  CENTAUR WARRUNNER '), 'centaur')
   assert.equal(getHeroSlug('Lifestealer'), 'life_stealer')
   assert.equal(getHeroSlug('Necrophos'), 'necrolyte')
+  assert.equal(getHeroSlug('Queen of Pain'), 'queenofpain')
   assert.equal(getHeroImage('Timbersaw'), 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/shredder.png')
   assert.equal(getHeroImage('Unknown'), 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/phantom_assassin.png')
   for (const player of players) {

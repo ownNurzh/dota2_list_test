@@ -4,7 +4,11 @@ import {
   MAX_TEAM_NAME_LENGTH, buildBracket, changeTournamentFormat, createTournament, getChampion, getTournamentMatchCount, parseTournament,
   renameTeam, resetResults, resizeTournament, setMatchWinner, shuffleTeams,
 } from '../app/utils/tournament.ts'
-import type { Match, TournamentState } from '../app/utils/tournament.ts'
+import type { Match, TournamentFormat, TournamentState } from '../app/utils/tournament.ts'
+
+function legacySix(format: TournamentFormat): TournamentState {
+  return { ...createTournament(6, format), layout: 'legacy-six-byes' }
+}
 
 function finishTournament(initial: TournamentState) {
   let state = initial
@@ -18,24 +22,24 @@ function finishTournament(initial: TournamentState) {
   return { state, played }
 }
 
-test('all supported single brackets crown a champion after exactly N−1 played matches', () => {
+test('all supported single brackets crown a champion after the expected number of real matches', () => {
   for (const size of [4, 6, 8] as const) {
     const state = createTournament(size, 'single')
     assert.equal(state.teams.length, size)
     assert.equal(new Set(state.teams.map(team => team.id)).size, size)
     assert.equal(getChampion(state), null)
     const rounds = buildBracket(state)
-    assert.deepEqual(rounds.map(round => round.matches.length), size === 4 ? [2, 1] : [4, 2, 1])
+    assert.deepEqual(rounds.map(round => round.matches.length), size === 4 ? [2, 1] : size === 6 ? [3, 3, 3, 3, 3, 2, 1] : [4, 2, 1])
     const { state: completed, played } = finishTournament(state)
-    assert.equal(played, size - 1)
-    assert.equal(Object.keys(completed.results).length, size - 1)
+    assert.equal(played, getTournamentMatchCount(state))
+    assert.equal(Object.keys(completed.results).length, getTournamentMatchCount(state))
     assert.equal(getChampion(completed)?.id, 'team-1')
     assert.deepEqual(state.results, {}, 'Completing a bracket must not mutate the input')
   }
 })
 
-test('six teams receive two fair first-round byes on opposite halves', () => {
-  const state = createTournament(6, 'single')
+test('legacy six-team brackets retain their original first-round byes', () => {
+  const state = legacySix('single')
   const rounds = buildBracket(state)
   assert.deepEqual(rounds[0]!.matches.map(match => match.teamIds), [
     ['team-1', null], ['team-4', 'team-5'], ['team-2', null], ['team-3', 'team-6'],
@@ -130,7 +134,7 @@ test('shuffle uses deterministic Fisher–Yates, preserves each team, and clears
 test('storage parser rejects corrupt schemas, unsupported sizes and duplicate or invalid identities', () => {
   const good = createTournament()
   const corrupt: unknown[] = [
-    null, [], 'invalid', {}, { ...good, version: 3 }, { ...good, size: 5 }, { ...good, format: 'triple' },
+    null, [], 'invalid', {}, { ...good, version: 4 }, { ...good, size: 5 }, { ...good, format: 'triple' },
     { ...good, teams: good.teams.slice(1) }, { ...good, results: [] },
     { ...good, unexpected: true },
     { ...good, teams: good.teams.map((team, index) => index === 0 ? { ...team, id: 'team-2' } : team) },
@@ -145,7 +149,7 @@ test('storage parser rejects corrupt schemas, unsupported sizes and duplicate or
 })
 
 test('storage parser keeps valid progression and sanitizes invalid, premature and bye results', () => {
-  const complete = finishTournament(createTournament(6, 'single')).state
+  const complete = finishTournament(legacySix('single')).state
   assert.deepEqual(parseTournament(JSON.parse(JSON.stringify(complete))), complete)
   const corrupted = {
     ...complete,
@@ -168,7 +172,8 @@ function allMatches(state: TournamentState): Match[] {
 }
 
 function playDouble(size: 4 | 6 | 8, reset: boolean, resetWinner: 0 | 1 = 0) {
-  let state = createTournament(size, 'double')
+  // Keep coverage of the pre-round-robin topology for existing saved six-team tournaments.
+  let state = size === 6 ? legacySix('double') : createTournament(size, 'double')
   const snapshots: TournamentState[] = [state]
   while (!getChampion(state)) {
     const match = allMatches(state).find(item => item.status === 'ready')
@@ -182,9 +187,9 @@ function playDouble(size: 4 | 6 | 8, reset: boolean, resetWinner: 0 | 1 = 0) {
 
 test('new tournaments default to double while version-one saves migrate losslessly to single', () => {
   assert.equal(createTournament().format, 'double')
-  assert.equal(createTournament().version, 2)
-  const completed = finishTournament(renameTeam(createTournament(6, 'single'), 'team-1', 'Our Stack')).state
-  const legacy = { version: 1, size: completed.size, teams: completed.teams, results: completed.results }
+  assert.equal(createTournament().version, 3)
+  const completed = finishTournament(renameTeam(legacySix('single'), 'team-1', 'Our Stack')).state
+  const legacy = { version: 1, size: completed.size, teams: completed.teams.map(({ id, name }) => ({ id, name })), results: completed.results }
   assert.deepEqual(parseTournament(legacy), completed)
   assert.equal(getChampion(parseTournament(legacy)!)?.name, 'Our Stack')
   assert.equal(parseTournament({ ...legacy, format: 'single' }), null, 'Legacy records must retain their exact schema')
@@ -217,15 +222,18 @@ test('double brackets complete in both grand-final paths and eliminate every non
           if (match.status === 'bye') assert.equal(match.loserId, null)
         }
         for (const snapshot of snapshots) {
-          assert.deepEqual(parseTournament(JSON.parse(JSON.stringify(snapshot))), snapshot, 'Every intermediate progression must survive storage')
+          const expected = snapshot.layout === 'legacy-six-byes' && Object.keys(snapshot.results).length === 0
+            ? { ...snapshot, layout: 'round-robin' }
+            : snapshot
+          assert.deepEqual(parseTournament(JSON.parse(JSON.stringify(snapshot))), expected, 'Played legacy progression must survive storage; unplayed setups upgrade')
         }
       }
     }
   }
 })
 
-test('six-team lower byes resolve only after their real feeder and never create losses', () => {
-  const initial = createTournament(6, 'double')
+test('legacy six-team lower byes resolve only after their real feeder and never create losses', () => {
+  const initial = legacySix('double')
   const before = allMatches(initial)
   assert.equal(before.filter(match => match.status === 'bye').length, 2)
   assert.equal(before.find(match => match.id === 'l0-m0')?.status, 'waiting')
@@ -298,12 +306,12 @@ test('format changes preserve seeded teams and clear results while other edits p
   assert.equal(single.format, 'single')
   assert.deepEqual(single.teams, completed.teams)
   assert.deepEqual(single.results, {})
-  assert.equal(getTournamentMatchCount(single), 5)
+  assert.equal(getTournamentMatchCount(single), 18)
   const double = changeTournamentFormat(single, 'double')
   assert.deepEqual(double.teams, single.teams)
   for (const state of [resizeTournament(double, 4), shuffleTeams(double, () => 0.2), resetResults(completed), renameTeam(double, 'team-2', 'Friends')]) {
     assert.equal(state.format, 'double')
-    assert.equal(state.version, 2)
+    assert.equal(state.version, 3)
     assert.ok(parseTournament(state))
   }
 })

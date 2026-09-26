@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
-  buildBracket, createTournament, getChampion, parseTournament, setMatchWinner, shuffleTeams,
+  buildBracket, createTournament, getChampion, getStandings, getTournamentMatchCount, parseTournament, setMatchWinner, shuffleTeams,
 } from '../app/utils/tournament.ts'
 import type { TournamentSize, TournamentState } from '../app/utils/tournament.ts'
 
 /** Count actual head-to-head games, independently of the engine's advancement rules. */
 function verifyState(state: TournamentState) {
   const matches = buildBracket(state).flatMap(round => round.matches)
-  const ledger = new Map(state.teams.map(team => [team.id, { played: 0, losses: 0 }]))
+  const ledger = new Map(state.teams.map(team => [team.id, { played: 0, losses: 0, groupPlayed: 0 }]))
+  const isRoundRobin = state.layout === 'round-robin'
+  const group = matches.filter(match => match.bracket === 'group')
+  const qualifiers = new Set(isRoundRobin
+    ? group.every(match => match.status === 'complete') ? getStandings(state).slice(0, 4).map(standing => standing.teamId) : []
+    : state.teams.map(team => team.id))
+  const groupMatchCount = isRoundRobin ? 15 : 0
+  const playoffSize = isRoundRobin ? 4 : state.size
   let played = 0
 
   for (const match of matches) {
@@ -26,36 +33,46 @@ function verifyState(state: TournamentState) {
     assert.ok(match.winnerId && participants.includes(match.winnerId))
     const loser = participants.find(id => id !== match.winnerId)!
     assert.equal(match.loserId, loser)
-    for (const id of participants) ledger.get(id)!.played++
-    ledger.get(loser)!.losses++
+    if (match.bracket === 'group') {
+      for (const id of participants) ledger.get(id)!.groupPlayed++
+    } else {
+      for (const id of participants) ledger.get(id)!.played++
+      ledger.get(loser)!.losses++
+    }
     played++
   }
 
   const active = new Set<string>()
-  for (const match of matches.filter(match => match.status === 'ready')) {
+  for (const match of matches.filter(match => match.status === 'ready' && match.bracket !== 'group')) {
     assert.equal(match.teamIds.filter(Boolean).length, 2)
     for (const id of match.teamIds) {
       assert.ok(id)
       assert.ok(!active.has(id), `${id} must not be ready in two simultaneous matches`)
+      assert.ok(qualifiers.has(id), `${id} must qualify before playing a playoff game`)
       assert.ok(ledger.get(id)!.losses < 2, `${id} cannot play after elimination`)
       active.add(id)
     }
   }
   for (const [id, record] of ledger) assert.ok(record.losses <= 2, `${id} cannot lose a third game`)
   assert.equal(Object.keys(state.results).length, played, 'Only real completed games are stored')
-  assert.ok(played <= 2 * state.size - 1, 'Double elimination always has a finite game bound')
+  assert.ok(played <= groupMatchCount + 2 * playoffSize - 1, 'Double elimination always has a finite game bound')
   assert.deepEqual(parseTournament(JSON.parse(JSON.stringify(state))), state, 'Every intermediate state survives storage')
 
-  const eliminated = [...ledger.values()].filter(record => record.losses === 2).length
+  const eliminated = [...ledger.entries()].filter(([id, record]) => qualifiers.has(id) && record.losses === 2).length
   const champion = getChampion(state)
-  assert.equal(Boolean(champion), eliminated === state.size - 1, 'Champion exists exactly when every opponent has two losses')
+  assert.equal(Boolean(champion), qualifiers.size > 0 && eliminated === qualifiers.size - 1, 'Champion exists exactly when every playoff opponent has two playoff losses')
   if (champion) {
     for (const [id, record] of ledger) {
-      assert.ok(record.played >= 2, `${id}: every team receives at least two actual games, including upper bye seeds`)
-      if (id === champion.id) assert.ok(record.losses <= 1)
-      else assert.equal(record.losses, 2)
+      if (isRoundRobin) assert.equal(record.groupPlayed, 5, `${id}: all six teams play five actual group games`)
+      if (qualifiers.has(id)) {
+        assert.ok(record.played >= 2, `${id}: every playoff team receives at least two actual playoff games`)
+        if (id === champion.id) assert.ok(record.losses <= 1)
+        else assert.equal(record.losses, 2)
+      } else {
+        assert.equal(record.played, 0, `${id}: nonqualifiers never enter the playoff`)
+      }
     }
-    assert.equal(played, 2 * state.size - 2 + ledger.get(champion.id)!.losses)
+    assert.equal(played, groupMatchCount + 2 * playoffSize - 2 + ledger.get(champion.id)!.losses)
     assert.equal(matches.some(match => match.status === 'ready'), false, 'No playable game remains after a champion is crowned')
   } else {
     assert.ok(matches.some(match => match.status === 'ready'), 'Every unfinished valid state can make progress')
@@ -97,13 +114,14 @@ test('six and eight teams finish with valid losses under shuffled seeding and ar
     for (let sample = 1; sample <= 96; sample++) {
       const random = randomGenerator(sample * 7919 + size)
       let state = shuffleTeams(createTournament(size, 'double'), random)
-      for (let step = 0; step <= 2 * size - 1; step++) {
+      const maxGames = getTournamentMatchCount(state) + 1
+      for (let step = 0; step <= maxGames; step++) {
         const { matches, champion, played } = verifyState(state)
         if (champion) {
           finalLengths.add(played)
           break
         }
-        assert.ok(step < 2 * size - 1, 'A legal match order cannot deadlock or loop')
+        assert.ok(step < maxGames, 'A legal match order cannot deadlock or loop')
         const ready = matches.filter(match => match.status === 'ready')
         // Exercise both ends of the ready list as well as arbitrary interleaving of upper/lower games.
         const index = sample % 3 === 0 ? ready.length - 1 : sample % 3 === 1 ? 0 : Math.floor(random() * ready.length)
@@ -111,19 +129,21 @@ test('six and eight teams finish with valid losses under shuffled seeding and ar
         state = setMatchWinner(state, match.id, match.teamIds[Math.floor(random() * 2)]!)
       }
     }
-    assert.deepEqual([...finalLengths].sort((a, b) => a - b), [2 * size - 2, 2 * size - 1])
+    const baseCount = getTournamentMatchCount(createTournament(size, 'double'))
+    assert.deepEqual([...finalLengths].sort((a, b) => a - b), [baseCount, baseCount + 1])
   }
 })
 
 function finishWithReset(size: TournamentSize) {
   let state = createTournament(size, 'double')
-  for (let step = 0; step < 2 * size - 1; step++) {
+  const games = getTournamentMatchCount(state) + 1
+  for (let step = 0; step < games; step++) {
     const matches = buildBracket(state).flatMap(round => round.matches)
     const match = matches.find(match => match.status === 'ready')
     assert.ok(match, 'Reset fixture must remain playable until its final game')
     // The first grand final must go to the lower-bracket finalist to activate a reset.
     const lowerIndex = match.id === 'gf-m0'
-      ? match.sources.findIndex(source => source.type !== 'seed' && matches.find(item => item.id === source.matchId)?.bracket === 'lower')
+      ? match.sources.findIndex(source => (source.type === 'winner' || source.type === 'loser') && matches.find(item => item.id === source.matchId)?.bracket === 'lower')
       : -1
     assert.ok(match.id !== 'gf-m0' || lowerIndex !== -1, 'Grand final has a lower-bracket source')
     state = setMatchWinner(state, match.id, match.teamIds[lowerIndex === -1 ? 0 : lowerIndex]!)
@@ -145,7 +165,9 @@ test('correcting results invalidates both winner and loser descendants but prese
       while (previousSize !== descendants.size) {
         previousSize = descendants.size
         for (const match of matches) {
-          if (match.sources.some(source => source.type !== 'seed' && descendants.has(source.matchId))) descendants.add(match.id)
+          if (match.sources.some(source => source.type === 'standing'
+            ? matches.some(item => item.bracket === 'group' && descendants.has(item.id))
+            : (source.type === 'winner' || source.type === 'loser') && descendants.has(source.matchId))) descendants.add(match.id)
         }
       }
       for (const newWinner of [null, changed.teamIds.find(id => id !== changed.winnerId)!]) {

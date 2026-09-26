@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       failOnError: true,
-      routes: ['/', '/tournament', ...players.map(player => `/players/${player.id}`)],
+      routes: ['/', '/tournament', '/tournaments/history', ...players.map(player => `/players/${player.id}`)],
     },
   },
 })

@@ -3,6 +3,8 @@ const tab = useDirectoryTab()
 const { favorites } = useFavorites()
 const route = useRoute()
 const isTournament = computed(() => route.path.replace(/\/$/, '') === '/tournament')
+const isHistory = computed(() => route.path.startsWith('/tournaments/'))
+const isDirectory = computed(() => !isTournament.value && !isHistory.value)
 </script>
 
 <template>
@@ -15,10 +17,11 @@ const isTournament = computed(() => route.path.replace(/\/$/, '') === '/tourname
           <span>DOTA<span class="brand-community">қауым<span class="brand-dot">.</span></span></span>
         </NuxtLink>
         <nav class="main-nav" aria-label="Основная навигация">
-          <NuxtLink to="/" :class="{ active: !isTournament && tab === 'players' }"><AppIcon name="users" :size="17" />Наши</NuxtLink>
+          <NuxtLink to="/" :class="{ active: isDirectory && tab === 'players' }"><AppIcon name="users" :size="17" />Наши</NuxtLink>
           <NuxtLink to="/tournament" :class="{ active: isTournament }"><AppIcon name="trophy" :size="17" />Турнир</NuxtLink>
-          <NuxtLink to="/?tab=ranking" :class="{ active: !isTournament && tab === 'ranking' }"><AppIcon name="chart" :size="17" />Рейтинг</NuxtLink>
-          <NuxtLink to="/?tab=favorites" :class="{ active: !isTournament && tab === 'favorites' }"><AppIcon name="star" :size="17" />Избранное<span v-if="favorites.length" class="nav-count">{{ favorites.length }}</span></NuxtLink>
+          <NuxtLink to="/tournaments/history" :class="{ active: isHistory }"><AppIcon name="list" :size="17" />История</NuxtLink>
+          <NuxtLink to="/?tab=ranking" :class="{ active: isDirectory && tab === 'ranking' }"><AppIcon name="chart" :size="17" />Рейтинг</NuxtLink>
+          <NuxtLink to="/?tab=favorites" :class="{ active: isDirectory && tab === 'favorites' }"><AppIcon name="star" :size="17" />Избранное<span v-if="favorites.length" class="nav-count">{{ favorites.length }}</span></NuxtLink>
         </nav>
         <div class="community-label"><AppIcon name="swords" :size="13" /> СВОИ ЛОББИ · 5 НА 5 <span class="country-label">KZ</span></div>
       </div>

@@ -1,4 +1,4 @@
-export type Role = 'Carry' | 'Mid' | 'Offlane' | 'Soft Support' | 'Hard Support'
+export type Role = 1 | 2 | 3 | 4 | 5
 export type Tier = 'Tier 1' | 'Tier 2' | 'Tier 3'
 export type StatKey = 'mechanics' | 'farming' | 'teamwork' | 'gameSense' | 'versatility'
 
@@ -16,7 +16,15 @@ export interface Player {
   stats: Record<StatKey, number>
 }
 
-export const roles: Role[] = ['Carry', 'Mid', 'Offlane', 'Soft Support', 'Hard Support']
+export const roles: Role[] = [1, 2, 3, 4, 5]
+
+export const roleDefinitions: Record<Role, { label: string; englishLabel: string }> = {
+  1: { label: 'Керри', englishLabel: 'Carry' },
+  2: { label: 'Мидер', englishLabel: 'Mid' },
+  3: { label: 'Оффлейнер', englishLabel: 'Offlane' },
+  4: { label: 'Софт-саппорт', englishLabel: 'Soft Support' },
+  5: { label: 'Хард-саппорт', englishLabel: 'Hard Support' },
+}
 
 export const statDefinitions: { key: StatKey; label: string; description: string; weight: number }[] = [
   { key: 'mechanics', label: 'Механика', description: 'Контроль героя, точность действий и исполнение комбинаций.', weight: 0.25 },
@@ -26,785 +34,296 @@ export const statDefinitions: { key: StatKey; label: string; description: string
   { key: 'versatility', label: 'Универсальность', description: 'Разнообразие героев и адаптация к разным игровым ситуациям.', weight: 0.1 },
 ]
 
-// Characteristics are illustrative examples, not verified match statistics or real player evaluations.
-// The original nicknames, names, MMR, tiers, tags and notes are preserved from index.html.
+// Редактируйте игроков ниже: role — позиция 1–5 (названия указаны в roleDefinitions).
+// Каждый id должен быть уникальным; характеристики stats задаются числами от 0 до 100.
+// Характеристики — условные оценки, а не проверенная статистика матчей.
 export const players: Player[] = [
   {
-    "id": "p1",
-    "nickname": "Yerbolo",
-    "fullName": "Ербол",
-    "role": "Carry",
-    "tier": "Tier 2",
-    "mmr": 3900,
-    "tags": [
-      "Таракан король",
-      "Стример",
-      "Онли луз"
-    ],
-    "notes": "Арыстаны оянса жаман",
-    "avatar": "https://imgs.search.brave.com/yAW1lQycdlK6VDGO-xWqBlStpvOoqUxUvA0AKs4zaBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMxNi50Z2NudC5y/dS9wb3N0cy9fMC85/Ni85NmRiM2QxMmU4/ODcyNzIyMzMzMTY2/NDc5YjkyOTIxMC5q/cGc",
-    "signatureHeroes": [
-      "Drow Ranger",
-      "Lifestealer"
-    ],
-    "stats": {
-      "mechanics": 70,
-      "farming": 50,
-      "teamwork": 62,
-      "gameSense": 60,
-      "versatility": 64
-    }
+    id: "p1", nickname: "Yerbolo", fullName: "Ербол",
+    role: 1, tier: "Tier 2", mmr: 3900,
+    tags: ["Таракан король","Стример","Онли луз"],
+    notes: "Арыстаны оянса жаман",
+    avatar: "https://imgs.search.brave.com/yAW1lQycdlK6VDGO-xWqBlStpvOoqUxUvA0AKs4zaBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMxNi50Z2NudC5y/dS9wb3N0cy9fMC85/Ni85NmRiM2QxMmU4/ODcyNzIyMzMzMTY2/NDc5YjkyOTIxMC5q/cGc",
+    signatureHeroes: ["Drow Ranger","Lifestealer"],
+    stats: { mechanics: 70, farming: 50, teamwork: 62, gameSense: 60, versatility: 64 },
   },
   {
-    "id": "p2",
-    "nickname": "General",
-    "fullName": "Димок",
-    "role": "Carry",
-    "tier": "Tier 2",
-    "mmr": 4100,
-    "tags": [
-      "Сору",
-      "Жалау",
-      "Ампылдап калу"
-    ],
-    "notes": "0/20 болу сәнғой",
-    "avatar": "https://imgs.search.brave.com/fLn2-Em8z-gc1CWJpie9GK6YE4VspO8GtnS6s-MiqBo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZW1p/LmtsZXYuY2x1Yi91/cGxvYWRzL3Bvc3Rz/LzIwMjQtMDQvdGh1/bWJzL21lbWkta2xl/di1jbHViLWEzbDQt/cC1tZW1pLWJvbHNo/b2ktbmVnci03Lmpw/Zw",
-    "signatureHeroes": [
-      "Juggernaut",
-      "Terrorblade"
-    ],
-    "stats": {
-      "mechanics": 76,
-      "farming": 80,
-      "teamwork": 68,
-      "gameSense": 71,
-      "versatility": 72
-    }
+    id: "p2", nickname: "General", fullName: "Димок",
+    role: 1, tier: "Tier 2", mmr: 4100,
+    tags: ["Сору","Жалау","Ампылдап калу"],
+    notes: "0/20 болу сәнғой",
+    avatar: "https://imgs.search.brave.com/fLn2-Em8z-gc1CWJpie9GK6YE4VspO8GtnS6s-MiqBo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZW1p/LmtsZXYuY2x1Yi91/cGxvYWRzL3Bvc3Rz/LzIwMjQtMDQvdGh1/bWJzL21lbWkta2xl/di1jbHViLWEzbDQt/cC1tZW1pLWJvbHNo/b2ktbmVnci03Lmpw/Zw",
+    signatureHeroes: ["Juggernaut","Terrorblade"],
+    stats: { mechanics: 76, farming: 80, teamwork: 68, gameSense: 71, versatility: 72 },
   },
   {
-    "id": "p3",
-    "nickname": "GOAT/LIMBO",
-    "fullName": "Бага",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 5400,
-    "tags": [
-      "Улюлюлю",
-      "Тильт"
-    ],
-    "notes": "Ербологодтын криптониды",
-    "avatar": null,
-    "signatureHeroes": [
-      "Spectre",
-      "Sven",
-      "Juggernaut"
-    ],
-    "stats": {
-      "mechanics": 88,
-      "farming": 90,
-      "teamwork": 74,
-      "gameSense": 83,
-      "versatility": 80
-    }
+    id: "p3", nickname: "GOAT/LIMBO", fullName: "Бага",
+    role: 1, tier: "Tier 1", mmr: 5400,
+    tags: ["Улюлюлю","Тильт"],
+    notes: "Ербологодтын криптониды",
+    avatar: null,
+    signatureHeroes: ["Spectre","Sven","Juggernaut"],
+    stats: { mechanics: 88, farming: 90, teamwork: 74, gameSense: 83, versatility: 80 },
   },
   {
-    "id": "p4",
-    "nickname": "Meet_Mstitel",
-    "fullName": "Азат/Томи",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 5400,
-    "tags": [
-      "Озындыкы ондырыстыкы",
-      "Кошкар ата"
-    ],
-    "notes": "Утылп калып азанға дейін жылау сән.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Spectre",
-      "Medusa",
-      "Luna"
-    ],
-    "stats": {
-      "mechanics": 84,
-      "farming": 91,
-      "teamwork": 78,
-      "gameSense": 86,
-      "versatility": 75
-    }
+    id: "p4", nickname: "Meet_Mstitel", fullName: "Азат/Томи",
+    role: 1, tier: "Tier 1", mmr: 5400,
+    tags: ["Озындыкы ондырыстыкы","Кошкар ата"],
+    notes: "Утылп калып азанға дейін жылау сән.",
+    avatar: null,
+    signatureHeroes: ["Spectre","Medusa","Luna"],
+    stats: { mechanics: 84, farming: 91, teamwork: 78, gameSense: 86, versatility: 75 },
   },
   {
-    "id": "p5",
-    "nickname": "Ампусенок/Чикиряу",
-    "fullName": "Дархан",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 5600,
-    "tags": [
-      "Көтке кіру мастер"
-    ],
-    "notes": "Жақсы керри.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Morphling",
-      "Terrorblade"
-    ],
-    "stats": {
-      "mechanics": 91,
-      "farming": 89,
-      "teamwork": 82,
-      "gameSense": 86,
-      "versatility": 80
-    }
+    id: "p5", nickname: "Ампусенок/Чикиряу", fullName: "Дархан",
+    role: 1, tier: "Tier 1", mmr: 5600,
+    tags: ["Көтке кіру мастер"],
+    notes: "Жақсы керри.",
+    avatar: null,
+    signatureHeroes: ["Morphling","Terrorblade"],
+    stats: { mechanics: 91, farming: 89, teamwork: 82, gameSense: 86, versatility: 80 },
   },
   {
-    "id": "p6",
-    "nickname": "Yuutsu",
-    "fullName": "Нұржігіт",
-    "role": "Carry",
-    "tier": "Tier 2",
-    "mmr": 4100,
-    "tags": [
-      "Аррррр"
-    ],
-    "notes": "",
-    "avatar": null,
-    "signatureHeroes": [
-      "Luna",
-      "Phantom Lancer"
-    ],
-    "stats": {
-      "mechanics": 78,
-      "farming": 81,
-      "teamwork": 75,
-      "gameSense": 73,
-      "versatility": 70
-    }
+    id: "p6", nickname: "Yuutsu", fullName: "Нұржігіт",
+    role: 1, tier: "Tier 2", mmr: 4100,
+    tags: ["Аррррр"],
+    notes: "",
+    avatar: null,
+    signatureHeroes: ["Luna","Phantom Lancer"],
+    stats: { mechanics: 78, farming: 81, teamwork: 75, gameSense: 73, versatility: 70 },
   },
   {
-    "id": "p7",
-    "nickname": "ALINA/ONE DAY",
-    "fullName": "Тима",
-    "role": "Carry",
-    "tier": "Tier 2",
-    "mmr": 5000,
-    "tags": [
-      "Жылауық",
-      "Аузына алып кету сән"
-    ],
-    "notes": "Марсиде кейде перформанс бермесе ,рак по жизни.Ник пиздец көп ауыстырад.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Bloodseeker",
-      "Marci"
-    ],
-    "stats": {
-      "mechanics": 83,
-      "farming": 82,
-      "teamwork": 67,
-      "gameSense": 78,
-      "versatility": 81
-    }
+    id: "p7", nickname: "ALINA/ONE DAY", fullName: "Тима",
+    role: 1, tier: "Tier 2", mmr: 5000,
+    tags: ["Жылауық","Аузына алып кету сән"],
+    notes: "Марсиде кейде перформанс бермесе ,рак по жизни.Ник пиздец көп ауыстырад.",
+    avatar: null,
+    signatureHeroes: ["Bloodseeker","Marci"],
+    stats: { mechanics: 83, farming: 82, teamwork: 67, gameSense: 78, versatility: 81 },
   },
   {
-    "id": "p8",
-    "nickname": "mode: parker",
-    "fullName": "Ерганат",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 6200,
-    "tags": [
-      "КейдеТигрКейдеМысық",
-      "ТопКерри"
-    ],
-    "notes": "",
-    "avatar": null,
-    "signatureHeroes": [
-      "Phantom Lancer",
-      "Morphling"
-    ],
-    "stats": {
-      "mechanics": 94,
-      "farming": 95,
-      "teamwork": 83,
-      "gameSense": 90,
-      "versatility": 87
-    }
+    id: "p8", nickname: "mode: parker", fullName: "Ерганат",
+    role: 1, tier: "Tier 1", mmr: 6200,
+    tags: ["КейдеТигрКейдеМысық","ТопКерри"],
+    notes: "",
+    avatar: null,
+    signatureHeroes: ["Phantom Lancer","Morphling"],
+    stats: { mechanics: 94, farming: 95, teamwork: 83, gameSense: 90, versatility: 87 },
   },
   {
-    "id": "p9",
-    "nickname": "суперКазах",
-    "fullName": "Абылай",
-    "role": "Offlane",
-    "tier": "Tier 2",
-    "mmr": 3500,
-    "tags": [
-      "МикрофонШумный",
-      "ПотенциалТитан"
-    ],
-    "notes": "А десең жүрегі көрінетін сияқты",
-    "avatar": null,
-    "signatureHeroes": [
-      "Axe",
-      "Tidehunter"
-    ],
-    "stats": {
-      "mechanics": 71,
-      "farming": 62,
-      "teamwork": 81,
-      "gameSense": 75,
-      "versatility": 70
-    }
+    id: "p9", nickname: "суперКазах", fullName: "Абылай",
+    role: 3, tier: "Tier 2", mmr: 3500,
+    tags: ["МикрофонШумный","ПотенциалТитан"],
+    notes: "А десең жүрегі көрінетін сияқты",
+    avatar: null,
+    signatureHeroes: ["Axe","Tidehunter"],
+    stats: { mechanics: 71, farming: 62, teamwork: 81, gameSense: 75, versatility: 70 },
   },
   {
-    "id": "p10",
-    "nickname": "Mode: Hashirama",
-    "fullName": "Нурбол",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 4300,
-    "tags": [
-      "Шал",
-      "Макаки"
-    ],
-    "notes": "Лионды Нурболға қарап создать еткенғой.Макакиге ағаштан ағашға секіруді үйреткенгой",
-    "avatar": null,
-    "signatureHeroes": [
-      "Lion",
-      "Witch Doctor"
-    ],
-    "stats": {
-      "mechanics": 77,
-      "farming": 55,
-      "teamwork": 88,
-      "gameSense": 82,
-      "versatility": 79
-    }
+    id: "p10", nickname: "Mode: Hashirama", fullName: "Нурбол",
+    role: 4, tier: "Tier 2", mmr: 4300,
+    tags: ["Шал","Макаки"],
+    notes: "Лионды Нурболға қарап создать еткенғой.Макакиге ағаштан ағашға секіруді үйреткенгой",
+    avatar: null,
+    signatureHeroes: ["Lion","Witch Doctor"],
+    stats: { mechanics: 77, farming: 55, teamwork: 88, gameSense: 82, versatility: 79 },
   },
   {
-    "id": "p11",
-    "nickname": "MADARA",
-    "fullName": "Дәулет",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 4000,
-    "tags": [
-      "ЕрболдынХейтері",
-      "БаганынБратишкасы"
-    ],
-    "notes": "Ерболды сігу сәнғой",
-    "avatar": null,
-    "signatureHeroes": [
-      "Dark Willow",
-      "Techies",
-      "Undying"
-    ],
-    "stats": {
-      "mechanics": 80,
-      "farming": 56,
-      "teamwork": 84,
-      "gameSense": 79,
-      "versatility": 87
-    }
+    id: "p11", nickname: "MADARA", fullName: "Дәулет",
+    role: 4, tier: "Tier 2", mmr: 4000,
+    tags: ["ЕрболдынХейтері","БаганынБратишкасы"],
+    notes: "Ерболды сігу сәнғой",
+    avatar: null,
+    signatureHeroes: ["Dark Willow","Techies","Undying"],
+    stats: { mechanics: 80, farming: 56, teamwork: 84, gameSense: 79, versatility: 87 },
   },
   {
-    "id": "p12",
-    "nickname": "Rico Caboom",
-    "fullName": "Дильшат",
-    "role": "Mid",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "Ұйғыр",
-      "БезСтрахаМидСорад"
-    ],
-    "notes": "Жақсы мидер негізі дота ойнамаса.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Necrophos",
-      "Arc Warden",
-      "Beastmaster"
-    ],
-    "stats": {
-      "mechanics": 91,
-      "farming": 87,
-      "teamwork": 82,
-      "gameSense": 93,
-      "versatility": 90
-    }
+    id: "p12", nickname: "Rico Caboom", fullName: "Дильшат",
+    role: 2, tier: "Tier 1", mmr: 6000,
+    tags: ["Ұйғыр","БезСтрахаМидСорад"],
+    notes: "Жақсы мидер негізі дота ойнамаса.",
+    avatar: null,
+    signatureHeroes: ["Necrophos","Arc Warden","Beastmaster"],
+    stats: { mechanics: 91, farming: 87, teamwork: 82, gameSense: 93, versatility: 90 },
   },
   {
-    "id": "p13",
-    "nickname": "Nurtentek",
-    "fullName": "Нурда",
-    "role": "Mid",
-    "tier": "Tier 1",
-    "mmr": 5000,
-    "tags": [
-      "Юмор",
-      "АзаттыСіккенПоидей"
-    ],
-    "notes": "Черный юмор тек.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Templar Assassin",
-      "Puck"
-    ],
-    "stats": {
-      "mechanics": 86,
-      "farming": 81,
-      "teamwork": 84,
-      "gameSense": 85,
-      "versatility": 80
-    }
+    id: "p13", nickname: "Nurtentek", fullName: "Нурда",
+    role: 2, tier: "Tier 1", mmr: 5000,
+    tags: ["Юмор","АзаттыСіккенПоидей"],
+    notes: "Черный юмор тек.",
+    avatar: null,
+    signatureHeroes: ["Templar Assassin","Puck"],
+    stats: { mechanics: 86, farming: 81, teamwork: 84, gameSense: 85, versatility: 80 },
   },
   {
-    "id": "p14",
-    "nickname": "Medievh",
-    "fullName": "Мәдіна",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 7800,
-    "tags": [
-      "ПосвоемуТильт",
-      "ЖақсыЧел"
-    ],
-    "notes": "Бұл баланың тильті бөлек.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Lone Druid",
-      "Arc Warden"
-    ],
-    "stats": {
-      "mechanics": 97,
-      "farming": 98,
-      "teamwork": 87,
-      "gameSense": 96,
-      "versatility": 91
-    }
+    id: "p14", nickname: "Medievh", fullName: "Мәдіна",
+    role: 1, tier: "Tier 1", mmr: 7800,
+    tags: ["ПосвоемуТильт","ЖақсыЧел"],
+    notes: "Бұл баланың тильті бөлек.",
+    avatar: null,
+    signatureHeroes: ["Lone Druid","Arc Warden"],
+    stats: { mechanics: 97, farming: 98, teamwork: 87, gameSense: 96, versatility: 91 },
   },
   {
-    "id": "p15",
-    "nickname": "Blackmarch",
-    "fullName": "Асылбек",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 4000,
-    "tags": [
-      "БогатоеМышление"
-    ],
-    "notes": "Асуйбек десен өлтіріп тастайды.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Undying",
-      "Ogre Magi"
-    ],
-    "stats": {
-      "mechanics": 70,
-      "farming": 52,
-      "teamwork": 87,
-      "gameSense": 80,
-      "versatility": 72
-    }
+    id: "p15", nickname: "Blackmarch", fullName: "Асылбек",
+    role: 4, tier: "Tier 2", mmr: 4000,
+    tags: ["БогатоеМышление"],
+    notes: "Асуйбек десен өлтіріп тастайды.",
+    avatar: null,
+    signatureHeroes: ["Undying","Ogre Magi"],
+    stats: { mechanics: 70, farming: 52, teamwork: 87, gameSense: 80, versatility: 72 },
   },
   {
-    "id": "p16",
-    "nickname": "Nurs",
-    "fullName": "Нурс",
-    "role": "Offlane",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "ТиманынСопернигі"
-    ],
-    "notes": "Тараканы бар ішінде оянбаған",
-    "avatar": null,
-    "signatureHeroes": [
-      "Centaur Warrunner"
-    ],
-    "stats": {
-      "mechanics": 90,
-      "farming": 79,
-      "teamwork": 92,
-      "gameSense": 91,
-      "versatility": 81
-    }
+    id: "p16", nickname: "Nurs", fullName: "Нурс",
+    role: 3, tier: "Tier 1", mmr: 6000,
+    tags: ["ТиманынСопернигі"],
+    notes: "Тараканы бар ішінде оянбаған",
+    avatar: null,
+    signatureHeroes: ["Centaur Warrunner"],
+    stats: { mechanics: 90, farming: 79, teamwork: 92, gameSense: 91, versatility: 81 },
   },
   {
-    "id": "p17",
-    "nickname": "ZLO",
-    "fullName": "Асылхан",
-    "role": "Hard Support",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "СуперСап"
-    ],
-    "notes": "Жахсы саппорт",
-    "avatar": null,
-    "signatureHeroes": [
-      "Rubick",
-      "Pudge"
-    ],
-    "stats": {
-      "mechanics": 89,
-      "farming": 60,
-      "teamwork": 98,
-      "gameSense": 94,
-      "versatility": 91
-    }
+    id: "p17", nickname: "ZLO", fullName: "Асылхан",
+    role: 5, tier: "Tier 1", mmr: 6000,
+    tags: ["СуперСап"],
+    notes: "Жахсы саппорт",
+    avatar: null,
+    signatureHeroes: ["Rubick","Pudge"],
+    stats: { mechanics: 89, farming: 60, teamwork: 98, gameSense: 94, versatility: 91 },
   },
   {
-    "id": "p18",
-    "nickname": "Nexus_Johnny",
-    "fullName": "Арманиак",
-    "role": "Mid",
-    "tier": "Tier 3",
-    "mmr": 2500,
-    "tags": [],
-    "notes": "Брат сен жайлы котакта блмид екем",
-    "avatar": null,
-    "signatureHeroes": [],
-    "stats": {
-      "mechanics": 58,
-      "farming": 55,
-      "teamwork": 62,
-      "gameSense": 54,
-      "versatility": 60
-    }
+    id: "p18", nickname: "Nexus_Johnny", fullName: "Арманиак",
+    role: 2, tier: "Tier 3", mmr: 2500,
+    tags: [],
+    notes: "Брат сен жайлы котакта блмид екем",
+    avatar: null,
+    signatureHeroes: [],
+    stats: { mechanics: 58, farming: 55, teamwork: 62, gameSense: 54, versatility: 60 },
   },
   {
-    "id": "p19",
-    "nickname": "Гарри Потный",
-    "fullName": "Кадыр",
-    "role": "Carry",
-    "tier": "Tier 3",
-    "mmr": 2000,
-    "tags": [
-      "Далбаеб",
-      "2009",
-      "Ербол#1Хейтер"
-    ],
-    "notes": "Лобби ойнамасада сгп стайды любойн",
-    "avatar": null,
-    "signatureHeroes": [
-      "Phantom Lancer",
-      "Tinker"
-    ],
-    "stats": {
-      "mechanics": 55,
-      "farming": 61,
-      "teamwork": 49,
-      "gameSense": 52,
-      "versatility": 66
-    }
+    id: "p19", nickname: "Гарри Потный", fullName: "Кадыр",
+    role: 1, tier: "Tier 3", mmr: 2000,
+    tags: ["Далбаеб","2009","Ербол#1Хейтер"],
+    notes: "Лобби ойнамасада сгп стайды любойн",
+    avatar: null,
+    signatureHeroes: ["Phantom Lancer","Tinker"],
+    stats: { mechanics: 55, farming: 61, teamwork: 49, gameSense: 52, versatility: 66 },
   },
   {
-    "id": "p20",
-    "nickname": "TOfu",
-    "fullName": "Ербол",
-    "role": "Mid",
-    "tier": "Tier 2",
-    "mmr": 4000,
-    "tags": [
-      "Ерболо оригинал",
-      "Ерболдын әйелі",
-      "Ербол с китая"
-    ],
-    "notes": "Микрофоны жох.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Marci"
-    ],
-    "stats": {
-      "mechanics": 79,
-      "farming": 74,
-      "teamwork": 70,
-      "gameSense": 77,
-      "versatility": 68
-    }
+    id: "p20", nickname: "TOfu", fullName: "Ербол",
+    role: 2, tier: "Tier 2", mmr: 4000,
+    tags: ["Ерболо оригинал","Ерболдын әйелі","Ербол с китая"],
+    notes: "Микрофоны жох.",
+    avatar: null,
+    signatureHeroes: ["Marci"],
+    stats: { mechanics: 79, farming: 74, teamwork: 70, gameSense: 77, versatility: 68 },
   },
   {
-    "id": "p21",
-    "nickname": "yoursin",
-    "fullName": "Дияс",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "2009",
-      "Қадыр#2"
-    ],
-    "notes": "Басқа вселенныйдағы Қадыр.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Luna"
-    ],
-    "stats": {
-      "mechanics": 90,
-      "farming": 94,
-      "teamwork": 81,
-      "gameSense": 87,
-      "versatility": 72
-    }
+    id: "p21", nickname: "yoursin", fullName: "Дияс",
+    role: 1, tier: "Tier 1", mmr: 6000,
+    tags: ["2009","Қадыр#2"],
+    notes: "Басқа вселенныйдағы Қадыр.",
+    avatar: null,
+    signatureHeroes: ["Luna"],
+    stats: { mechanics: 90, farming: 94, teamwork: 81, gameSense: 87, versatility: 72 },
   },
   {
-    "id": "p22",
-    "nickname": "Кандай ед зб бля",
-    "fullName": "Чина",
-    "role": "Mid",
-    "tier": "Tier 1",
-    "mmr": 7000,
-    "tags": [
-      "Чилл"
-    ],
-    "notes": "Жақсы мидер",
-    "avatar": null,
-    "signatureHeroes": [
-      "Arc Warden"
-    ],
-    "stats": {
-      "mechanics": 95,
-      "farming": 93,
-      "teamwork": 86,
-      "gameSense": 97,
-      "versatility": 88
-    }
+    id: "p22", nickname: "Кандай ед зб бля", fullName: "Чина",
+    role: 2, tier: "Tier 1", mmr: 7000,
+    tags: ["Чилл"],
+    notes: "Жақсы мидер",
+    avatar: null,
+    signatureHeroes: ["Arc Warden"],
+    stats: { mechanics: 95, farming: 93, teamwork: 86, gameSense: 97, versatility: 88 },
   },
   {
-    "id": "p31",
-    "nickname": "Z",
-    "fullName": "Біржан",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 3500,
-    "tags": [
-      "Чилл"
-    ],
-    "notes": "Ерболдын хейтері",
-    "avatar": null,
-    "signatureHeroes": [
-      "Disruptor"
-    ],
-    "stats": {
-      "mechanics": 70,
-      "farming": 50,
-      "teamwork": 86,
-      "gameSense": 78,
-      "versatility": 68
-    }
+    id: "p31", nickname: "Z", fullName: "Біржан",
+    role: 4, tier: "Tier 2", mmr: 3500,
+    tags: ["Чилл"],
+    notes: "Ерболдын хейтері",
+    avatar: null,
+    signatureHeroes: ["Disruptor"],
+    stats: { mechanics: 70, farming: 50, teamwork: 86, gameSense: 78, versatility: 68 },
   },
   {
-    "id": "p23",
-    "nickname": "GOAT",
-    "fullName": "Архат",
-    "role": "Mid",
-    "tier": "Tier 2",
-    "mmr": 5000,
-    "tags": [
-      "БаганынБратишкасы"
-    ],
-    "notes": "Феникс бермеу керек бұған",
-    "avatar": null,
-    "signatureHeroes": [
-      "Phoenix"
-    ],
-    "stats": {
-      "mechanics": 84,
-      "farming": 78,
-      "teamwork": 75,
-      "gameSense": 82,
-      "versatility": 73
-    }
+    id: "p23", nickname: "GOAT", fullName: "Архат",
+    role: 2, tier: "Tier 2", mmr: 5000,
+    tags: ["БаганынБратишкасы"],
+    notes: "Феникс бермеу керек бұған",
+    avatar: null,
+    signatureHeroes: ["Phoenix"],
+    stats: { mechanics: 84, farming: 78, teamwork: 75, gameSense: 82, versatility: 73 },
   },
   {
-    "id": "p24",
-    "nickname": "Kemenger",
-    "fullName": "Олжас",
-    "role": "Offlane",
-    "tier": "Tier 2",
-    "mmr": 2000,
-    "tags": [
-      "Шымкент"
-    ],
-    "notes": "Азат десе тұрып кетед.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Mars",
-      "Timbersaw",
-      "Largo"
-    ],
-    "stats": {
-      "mechanics": 60,
-      "farming": 48,
-      "teamwork": 74,
-      "gameSense": 59,
-      "versatility": 77
-    }
+    id: "p24", nickname: "Kemenger", fullName: "Олжас",
+    role: 3, tier: "Tier 2", mmr: 2000,
+    tags: ["Шымкент"],
+    notes: "Азат десе тұрып кетед.",
+    avatar: null,
+    signatureHeroes: ["Mars","Timbersaw","Largo"],
+    stats: { mechanics: 60, farming: 48, teamwork: 74, gameSense: 59, versatility: 77 },
   },
   {
-    "id": "p25",
-    "nickname": "ZoSo",
-    "fullName": "Данабек",
-    "role": "Carry",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "тяутяу"
-    ],
-    "notes": "Нурданын танысы.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Ursa"
-    ],
-    "stats": {
-      "mechanics": 91,
-      "farming": 93,
-      "teamwork": 88,
-      "gameSense": 89,
-      "versatility": 79
-    }
+    id: "p25", nickname: "ZoSo", fullName: "Данабек",
+    role: 1, tier: "Tier 1", mmr: 6000,
+    tags: ["тяутяу"],
+    notes: "Нурданын танысы.",
+    avatar: null,
+    signatureHeroes: ["Ursa"],
+    stats: { mechanics: 91, farming: 93, teamwork: 88, gameSense: 89, versatility: 79 },
   },
   {
-    "id": "p26",
-    "nickname": "Nrjn",
-    "fullName": "Нуржан",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 4000,
-    "tags": [
-      "тяутяу"
-    ],
-    "notes": "Нурданын танысы.",
-    "avatar": null,
-    "signatureHeroes": [
-      "Lion"
-    ],
-    "stats": {
-      "mechanics": 76,
-      "farming": 53,
-      "teamwork": 85,
-      "gameSense": 80,
-      "versatility": 70
-    }
+    id: "p26", nickname: "Nrjn", fullName: "Нуржан",
+    role: 4, tier: "Tier 2", mmr: 4000,
+    tags: ["тяутяу"],
+    notes: "Нурданын танысы.",
+    avatar: null,
+    signatureHeroes: ["Lion"],
+    stats: { mechanics: 76, farming: 53, teamwork: 85, gameSense: 80, versatility: 70 },
   },
   {
-    "id": "p27",
-    "nickname": "Diksh",
-    "fullName": "Оралхан",
-    "role": "Mid",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "2k мусор"
-    ],
-    "notes": "Рак санайды өзін",
-    "avatar": null,
-    "signatureHeroes": [
-      "Lina"
-    ],
-    "stats": {
-      "mechanics": 92,
-      "farming": 89,
-      "teamwork": 83,
-      "gameSense": 91,
-      "versatility": 84
-    }
+    id: "p27", nickname: "Diksh", fullName: "Оралхан",
+    role: 2, tier: "Tier 1", mmr: 6000,
+    tags: ["2k мусор"],
+    notes: "Рак санайды өзін",
+    avatar: null,
+    signatureHeroes: ["Lina"],
+    stats: { mechanics: 92, farming: 89, teamwork: 83, gameSense: 91, versatility: 84 },
   },
   {
-    "id": "p28",
-    "nickname": "Courage",
-    "fullName": "Бижігіт",
-    "role": "Carry",
-    "tier": "Tier 2",
-    "mmr": 5000,
-    "tags": [
-      "1k задр",
-      "шал"
-    ],
-    "notes": "Қызы бар 2000 жылғы",
-    "avatar": null,
-    "signatureHeroes": [
-      "Earthshaker"
-    ],
-    "stats": {
-      "mechanics": 85,
-      "farming": 80,
-      "teamwork": 81,
-      "gameSense": 78,
-      "versatility": 88
-    }
+    id: "p28", nickname: "Courage", fullName: "Бижігіт",
+    role: 1, tier: "Tier 2", mmr: 5000,
+    tags: ["1k задр","шал"],
+    notes: "Қызы бар 2000 жылғы",
+    avatar: null,
+    signatureHeroes: ["Earthshaker"],
+    stats: { mechanics: 85, farming: 80, teamwork: 81, gameSense: 78, versatility: 88 },
   },
   {
-    "id": "p29",
-    "nickname": "Cafe_u_roshana",
-    "fullName": "Вахид",
-    "role": "Soft Support",
-    "tier": "Tier 2",
-    "mmr": 3500,
-    "tags": [
-      "Легенда",
-      "Чемпион"
-    ],
-    "notes": "Чемпион болу сән",
-    "avatar": null,
-    "signatureHeroes": [
-      "Hoodwink"
-    ],
-    "stats": {
-      "mechanics": 78,
-      "farming": 51,
-      "teamwork": 90,
-      "gameSense": 84,
-      "versatility": 77
-    }
+    id: "p29", nickname: "Cafe_u_roshana", fullName: "Вахид",
+    role: 4, tier: "Tier 2", mmr: 3500,
+    tags: ["Легенда","Чемпион"],
+    notes: "Чемпион болу сән",
+    avatar: null,
+    signatureHeroes: ["Hoodwink"],
+    stats: { mechanics: 78, farming: 51, teamwork: 90, gameSense: 84, versatility: 77 },
   },
   {
-    "id": "p30",
-    "nickname": "Qutra",
-    "fullName": "Еламан",
-    "role": "Mid",
-    "tier": "Tier 1",
-    "mmr": 6000,
-    "tags": [
-      "Арррр"
-    ],
-    "notes": "Доха мен Ерганаттын криптониды",
-    "avatar": null,
-    "signatureHeroes": [
-      "Invoker",
-      "Magnus"
-    ],
-    "stats": {
-      "mechanics": 94,
-      "farming": 86,
-      "teamwork": 87,
-      "gameSense": 93,
-      "versatility": 92
-    }
+    id: "p30", nickname: "Qutra", fullName: "Еламан",
+    role: 2, tier: "Tier 1", mmr: 6000,
+    tags: ["Арррр"],
+    notes: "Доха мен Ерганаттын криптониды",
+    avatar: null,
+    signatureHeroes: ["Invoker","Magnus"],
+    stats: { mechanics: 94, farming: 86, teamwork: 87, gameSense: 93, versatility: 92 },
   },
   {
-    "id": "p31",
-    "nickname": "Daiteris",
-    "fullName": "Искандер",
-    "role": "Offlane",
-    "tier": "Tier 1",
-    "mmr": 5000,
-    "tags": [
-      
-    ],
-    "notes": "Чилл",
-    "avatar": null,
-    "signatureHeroes": [
-      "Queen of Pain",
-      "Magnus"
-    ],
-    "stats": {
-      "mechanics": 80,
-      "farming": 86,
-      "teamwork": 70,
-      "gameSense": 85,
-      "versatility": 70
-    }
-  }
+    id: "p32", nickname: "Daiteris", fullName: "Искандер",
+    role: 3, tier: "Tier 1", mmr: 5000,
+    tags: [],
+    notes: "Чилл",
+    avatar: null,
+    signatureHeroes: ["Queen of Pain","Magnus"],
+    stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
+  },
 ]
