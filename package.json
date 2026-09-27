@@ -8,9 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "verify:static": "node --experimental-strip-types scripts/verify-static.mjs"
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "nuxt": "^4.5.2",

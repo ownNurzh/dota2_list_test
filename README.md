@@ -24,8 +24,6 @@ npm run build       # production-сборка
 npm run preview     # просмотр production-сборки
 npm run generate    # статическая версия в .output/public
 npm run typecheck   # проверка TypeScript
-npm test           # данные игроков, рейтинг и обе турнирные сетки
-npm run verify:static # проверка сгенерированных страниц и путей
 ```
 
 ## Структура
@@ -121,20 +119,19 @@ MMR не входит в формулу. Баллы, топ и карточки 
 }
 ```
 
-`champion.name` — название команды, `champion.playerIds` — до пяти уникальных ID реальных игроков из `players.ts`. После отправки изменений в GitHub общая история обновится при сборке Pages. Проверка `verify:static` проверяет дату, название победителя и ссылки на профили каждого игрока в опубликованной записи.
+`champion.name` — название команды, `champion.playerIds` — до пяти уникальных ID реальных игроков из `players.ts`. После отправки изменений в GitHub общая история обновится при сборке Pages.
 
 ## GitHub Pages
 
-Публикацией управляет `.github/workflows/deploy-pages.yml`. Каждый push в `main` запускает установку через `npm ci`, тесты, проверку TypeScript и `npm run generate`. После проверки готовые файлы из `.output/public` публикуются в GitHub Pages. Workflow можно запустить вручную во вкладке Actions.
+Публикацией управляет `.github/workflows/deploy-pages.yml`. Каждый push в `main` запускает установку через `npm ci` и сборку через `npm run generate`. Готовые файлы из `.output/public` публикуются в GitHub Pages. Workflow можно запустить вручную во вкладке Actions.
 
 В настройках репозитория **Settings → Pages → Source** используется **GitHub Actions**. Base URL определяется из настроек Pages, поэтому ссылки, favicon и заглушки изображений работают в подпапке `/dota2_list_test/`. Все профили предварительно генерируются — прямые ссылки работают без Node.js-сервера.
 
-Проверка такой же сборки локально в PowerShell:
+Такая же сборка локально в PowerShell:
 
 ```powershell
 $env:NUXT_APP_BASE_URL = '/dota2_list_test/'
 npm.cmd run generate
-npm.cmd run verify:static
 Remove-Item Env:NUXT_APP_BASE_URL
 ```
 

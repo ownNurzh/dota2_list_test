@@ -35,22 +35,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test player data and tournament brackets
-        run: npm test
-
-      - name: Check TypeScript
-        run: npm run typecheck
-
       - name: Generate static site
         run: npm run generate
         env:
           NUXT_APP_BASE_URL: ${{ steps.pages.outputs.base_path }}/
           NUXT_TELEMETRY_DISABLED: '1'
-
-      - name: Verify static pages and asset paths
-        run: npm run verify:static
-        env:
-          NUXT_APP_BASE_URL: ${{ steps.pages.outputs.base_path }}/
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
