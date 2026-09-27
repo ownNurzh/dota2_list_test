@@ -166,7 +166,7 @@ export const players: Player[] = [
   },
   {
     id: "p15", nickname: "Blackmarch", fullName: "Асылбек",
-    role: 4, tier: "Tier 2", mmr: 4000,
+    role: 4, tier: "Tier 2", mmr: 4700,
     tags: ["БогатоеМышление"],
     notes: "Асуйбек десен өлтіріп тастайды.",
     avatar: null,
@@ -228,7 +228,7 @@ export const players: Player[] = [
     stats: { mechanics: 90, farming: 94, teamwork: 81, gameSense: 87, versatility: 72 },
   },
   {
-    id: "p22", nickname: "Кандай ед зб бля", fullName: "Чина",
+    id: "p22", nickname: "China", fullName: "Чина",
     role: 2, tier: "Tier 1", mmr: 7000,
     tags: ["Чилл"],
     notes: "Жақсы мидер",
@@ -318,12 +318,21 @@ export const players: Player[] = [
     stats: { mechanics: 94, farming: 86, teamwork: 87, gameSense: 93, versatility: 92 },
   },
   {
-    id: "p32", nickname: "Daiteris", fullName: "Искандер",
+    id: "p3", nickname: "Daiteris", fullName: "Искандер",
     role: 3, tier: "Tier 1", mmr: 5000,
     tags: [],
     notes: "Чилл",
     avatar: null,
     signatureHeroes: ["Queen of Pain","Magnus"],
+    stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
+  },
+  {
+    id: "p32", nickname: "bl1zzard", fullName: "Жеңіс",
+    role: 2, tier: "Tier 1", mmr: 5900,
+    tags: [],
+    notes: "Чилл",
+    avatar: null,
+    signatureHeroes: ["Lina"],
     stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
   },
 ]
