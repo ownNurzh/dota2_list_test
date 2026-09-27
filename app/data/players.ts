@@ -45,7 +45,7 @@ export const players: Player[] = [
     notes: "Арыстаны оянса жаман",
     avatar: "https://imgs.search.brave.com/yAW1lQycdlK6VDGO-xWqBlStpvOoqUxUvA0AKs4zaBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMxNi50Z2NudC5y/dS9wb3N0cy9fMC85/Ni85NmRiM2QxMmU4/ODcyNzIyMzMzMTY2/NDc5YjkyOTIxMC5q/cGc",
     signatureHeroes: ["Drow Ranger","Lifestealer"],
-    stats: { mechanics: 70, farming: 50, teamwork: 62, gameSense: 60, versatility: 64 },
+    stats: { mechanics: 65, farming: 40, teamwork: 70, gameSense: 50, versatility: 64 },
   },
   {
     id: "p2", nickname: "General", fullName: "Димок",
@@ -318,7 +318,7 @@ export const players: Player[] = [
     stats: { mechanics: 94, farming: 86, teamwork: 87, gameSense: 93, versatility: 92 },
   },
   {
-    id: "p3", nickname: "Daiteris", fullName: "Искандер",
+    id: "p34", nickname: "Daiteris", fullName: "Искандер",
     role: 3, tier: "Tier 1", mmr: 5000,
     tags: [],
     notes: "Чилл",
@@ -334,5 +334,14 @@ export const players: Player[] = [
     avatar: null,
     signatureHeroes: ["Lina"],
     stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
+  },
+  {
+    id: "p33", nickname: "Messi", fullName: "Ернар",
+    role: 4, tier: "Tier 1", mmr: 7000,
+    tags: [],
+    notes: "Чилл",
+    avatar: null,
+    signatureHeroes: ["earthshaker"],
+    stats: { mechanics: 90, farming: 80, teamwork: 90, gameSense: 90, versatility: 90 },
   },
 ]

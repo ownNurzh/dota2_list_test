@@ -4,7 +4,7 @@ import { resolve, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { players } from '../app/data/players.ts'
 import { tournaments } from '../app/data/tournaments.ts'
-import { parseTournamentEntry } from '../app/utils/tournament-history.ts'
+import { formatTournamentDate, parseTournamentEntry } from '../app/utils/tournament-history.ts'
 
 const projectDirectory = fileURLToPath(new URL('../', import.meta.url))
 const outputDirectory = resolve(projectDirectory, '.output/public')
@@ -75,9 +75,27 @@ await requireFile(historyPath)
 const historyHtml = await readFile(resolve(outputDirectory, historyPath), 'utf8')
 assert.ok(historyHtml.includes('id="history-heading"'), 'Tournament history must be prerendered')
 assert.equal(new Set(tournaments.map(entry => entry.id)).size, tournaments.length, 'Published tournament IDs must be unique')
+const historyRecords = [...historyHtml.matchAll(/<article\b[^>]*\bclass=["']([^"']*)["'][^>]*>([\s\S]*?)<\/article>/gi)]
+  .filter(match => match[1].split(/\s+/).includes('record-view'))
+assert.equal(historyRecords.length, tournaments.length, 'History must render one champion record per published tournament')
+const playersById = new Map(players.map(player => [player.id, player]))
 for (const entry of tournaments) {
-  assert.ok(parseTournamentEntry(entry), `Invalid or unfinished published tournament: ${entry.id}`)
-  assert.ok(historyHtml.includes(escapeHtml(entry.title)), `History must render published tournament ${entry.id}`)
+  assert.ok(parseTournamentEntry(entry), `Invalid published champion record: ${entry.id}`)
+  const record = historyRecords.find(match => {
+    const date = match[2].match(/<time\b[^>]*\bdatetime=["']([^"']*)["'][^>]*>/i)?.[1]
+    const champion = match[2].match(/<h2\b[^>]*>([\s\S]*?)<\/h2>/i)?.[1]
+    return date === entry.date && champion === escapeHtml(entry.champion.name)
+  })?.[2]
+  assert.ok(record, `History must render the date and champion of ${entry.id}`)
+  assert.ok(record.includes(escapeHtml(formatTournamentDate(entry.date))), `History must show a readable date for ${entry.id}`)
+  const recordAttributes = attributes(record)
+  for (const id of entry.champion.playerIds) {
+    const player = playersById.get(id)
+    assert.ok(player, `Published champion ${entry.id} references an unknown player: ${id}`)
+    const expectedLink = `${baseURL}players/${id}`
+    assert.ok(recordAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === expectedLink.replace(/\/$/, '')), `Champion ${entry.id} must link to ${expectedLink}`)
+    assert.ok(record.includes(escapeHtml(player.nickname)), `Champion ${entry.id} must show ${player.nickname}`)
+  }
 }
 assert.ok(indexAttributes.some(item => item.name === 'href' && item.value.replace(/\/$/, '') === `${baseURL}tournaments/history`), 'Navigation must link to tournament history')
 

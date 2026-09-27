@@ -34,20 +34,20 @@ export function useTournamentHistory() {
     ...localEntries.value.filter(entry => !publishedIds.has(entry.id)).map(entry => ({ ...entry, source: 'local' as const })),
   ].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id)))
 
-  function save(state: TournamentState, title: string, date: string): string | null {
+  function save(state: TournamentState, date: string): string | null {
     historyError.value = ''
     if (!historyReady.value) return null
     const id = `cup-${crypto.randomUUID()}`
-    const entry = createTournamentEntry(state, title, date, id)
+    const entry = createTournamentEntry(state, date, id)
     if (!entry) {
-      historyError.value = 'Заверши турнир и укажи название (до 80 символов) и корректную дату.'
+      historyError.value = 'Заверши турнир и укажи корректную дату.'
       return null
     }
     const fingerprint = tournamentFingerprint(entry)
     const existing = entries.value.find(item => tournamentFingerprint(item) === fingerprint)
     if (existing) return existing.id
     if (localEntries.value.length >= MAX_ARCHIVED_TOURNAMENTS) {
-      historyError.value = 'История заполнена: скачай нужные записи и удали старые, чтобы сохранить новый турнир.'
+      historyError.value = 'Сохранено 100 турниров. Удали ненужную запись из истории, чтобы добавить новую.'
       return null
     }
     const next = [entry, ...localEntries.value]
@@ -74,15 +74,5 @@ export function useTournamentHistory() {
     }
   }
 
-  function download(entry: TournamentArchiveEntry) {
-    const { id, title, date, state } = entry
-    const url = URL.createObjectURL(new Blob([JSON.stringify({ id, title, date, state }, null, 2)], { type: 'application/json;charset=utf-8' }))
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${id}.json`
-    link.click()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  }
-
-  return { entries, localEntries, historyReady, historyError, save, remove, download }
+  return { entries, localEntries, historyReady, historyError, save, remove }
 }

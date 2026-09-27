@@ -1,15 +1,14 @@
 import type { TournamentArchiveEntry } from '../utils/tournament-history'
 
 /**
- * Общая история турниров, которую видят все посетители сайта.
- * Завершите турнир, сохраните его в историю и скачайте JSON его записи.
- * Вставьте полученный объект в этот массив и опубликуйте сайт.
- *
- * title — название турнира; date — дата YYYY-MM-DD.
- * state.teams — названия команд и playerIds из players.ts (например, ['p1', 'p8']).
- * state.results — сохранённые победители всех матчей.
- * Не меняйте ID игроков: по ним открываются профили и собираются составы.
- *
- * Пока здесь нет записей: результаты настоящих турниров ещё не предоставлены.
+ * История чемпионов, доступная всем посетителям сайта.
+ * Для нового турнира добавьте уникальный id, дату YYYY-MM-DD и победителя.
+ * champion.name — название команды, champion.playerIds — ID её игроков из players.ts.
  */
-export const tournaments: TournamentArchiveEntry[] = []
+export const tournaments: TournamentArchiveEntry[] = [
+  {
+    id: 't1',
+    date: '2026-09-26',
+    champion: { name: 'Daiteris', playerIds: ['p1', 'p2', 'p3'] },
+  },
+]

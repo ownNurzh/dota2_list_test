@@ -3,19 +3,24 @@ import test from 'node:test'
 import { players, roleDefinitions, roles, statDefinitions } from '../app/data/players.ts'
 import { calculateRating, filterPlayers, formatNumber, formatRole, getHeroImage, getHeroSlug } from '../app/utils/players.ts'
 
-test('migration retains all 32 current players with unique IDs and numeric positions', () => {
-  assert.equal(players.length, 32)
-  assert.equal(new Set(players.map(player => player.id)).size, 32)
+test('player catalog has unique route IDs and valid numeric positions', () => {
+  assert.ok(players.length > 0)
+  assert.equal(new Set(players.map(player => player.id)).size, players.length, 'Every player needs a unique route ID')
   assert.equal(players.find(player => player.id === 'p22')?.fullName, 'Чина')
   assert.equal(players.find(player => player.id === 'p31')?.nickname, 'Z')
   assert.equal(players.find(player => player.nickname === 'Nrjn')?.role, 4)
   assert.deepEqual(roles, [1, 2, 3, 4, 5])
-  for (const player of players) assert.ok(roles.includes(player.role))
+  for (const player of players) {
+    assert.match(player.id, /^p\d+$/)
+    assert.ok(roles.includes(player.role))
+  }
 })
 
-test('newly added Daiteris retains the latest user data under a unique route', () => {
-  assert.deepEqual(players.find(player => player.id === 'p32'), {
-    id: 'p32', nickname: 'Daiteris', fullName: 'Искандер', role: 3, tier: 'Tier 1', mmr: 5000,
+test('Daiteris retains the supplied profile data under a route distinct from Z and bl1zzard', () => {
+  assert.equal(players.find(player => player.id === 'p31')?.nickname, 'Z')
+  assert.equal(players.find(player => player.id === 'p32')?.nickname, 'bl1zzard')
+  assert.deepEqual(players.find(player => player.id === 'p34'), {
+    id: 'p34', nickname: 'Daiteris', fullName: 'Искандер', role: 3, tier: 'Tier 1', mmr: 5000,
     tags: [], notes: 'Чилл', avatar: null, signatureHeroes: ['Queen of Pain', 'Magnus'],
     stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
   })
@@ -67,7 +72,7 @@ test('search, role and tier combine and include hero names, names, notes and tag
   assert.ok(filterPlayers(players, { search: 'Аррррр' }).some(player => player.id === 'p6'))
   assert.equal(filterPlayers(players, { search: 'Микрофоны жох' })[0]?.nickname, 'TOfu')
   assert.ok(filterPlayers(players, { search: 'Tier 3' }).every(player => player.tier === 'Tier 3'))
-  assert.equal(filterPlayers(players, { role: 'all', tier: 'all', search: '   ' }).length, 32)
+  assert.equal(filterPlayers(players, { role: 'all', tier: 'all', search: '   ' }).length, players.length)
   assert.deepEqual(filterPlayers(players, { search: 'no-such-player' }), [])
 })
 

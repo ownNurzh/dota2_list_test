@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<{
   loserDestination?: string
   loserTarget?: string
 }>(), { readonly: false })
-const emit = defineEmits<{ select: [teamId: string]; navigate: [matchId: string] }>()
+const emit = defineEmits<{ select: [teamId: string | null]; navigate: [matchId: string] }>()
 const canChoose = computed(() => !props.readonly && props.ready && (props.match.status === 'ready' || props.match.status === 'complete'))
 const status = computed(() => ({
   ready: 'Можно играть',
@@ -36,12 +36,12 @@ function buttonLabel(id: string) {
   if (props.readonly) return `${teamName(id)}${props.match.winnerId === id ? ': победитель' : ''}`
   if (props.match.status === 'bye') return `${teamName(id)}: автоматический проход`
   if (props.match.status === 'waiting') return `${teamName(id)}: ждём соперника`
-  return `${teamName(id)}: ${props.match.winnerId === id ? 'победитель, нажать для отмены' : 'выбрать победителем'}`
+  return `${teamName(id)}: ${props.match.winnerId === id ? 'победитель' : 'выбрать победителем'}`
 }
 function roster(id: string | null) {
   return (props.teams.find(team => team.id === id)?.playerIds ?? []).map(playerId => players.find(player => player.id === playerId)).filter(player => Boolean(player))
 }
-function select(id: string) { if (canChoose.value) emit('select', id) }
+function select(id: string) { if (canChoose.value && props.match.winnerId !== id) emit('select', id) }
 </script>
 
 <template>
@@ -63,18 +63,23 @@ function select(id: string) { if (canChoose.value) emit('select', id) }
           @click="select(id)"
         >
           <span class="team-seed">{{ teamSeed(id) }}</span>
-          <span class="match-team-copy"><strong>{{ teamName(id) }}</strong><small>{{ sourceLabels[index] }}</small></span>
+          <span class="match-team-copy"><strong>{{ teamName(id) }}</strong><small v-if="match.bracket !== 'group'">{{ sourceLabels[index] }}</small></span>
           <AppIcon v-if="match.winnerId === id" name="check" :size="16" />
           <span v-else class="team-pick-dot" />
         </component>
         <div v-else class="match-placeholder"><span class="empty-seed">—</span><span>{{ sourceLabels[index] }}</span></div>
       </template>
     </div>
+    <div v-if="match.status === 'complete' && !readonly" class="match-result"><span><AppIcon name="check" :size="14" /> Результат сохранён</span><button type="button" :disabled="!canChoose" :aria-label="`Отменить результат матча ${label}`" @click="emit('select', null)">Отменить</button></div>
+    <p v-else-if="match.status === 'ready' && !readonly" class="match-hint">Выбери победителя ↑</p>
+    <details class="match-details">
+      <summary><AppIcon name="info" :size="14" /> Подробности матча <AppIcon name="chevron-down" :size="14" /></summary>
     <div v-if="winnerDestination || loserDestination" class="match-destinations">
       <div v-if="winnerDestination" class="winner-destination"><AppIcon name="check" :size="13" /><span>Победитель</span><a v-if="winnerTarget" :href="`#tournament-match-${winnerTarget}`" @click.prevent="emit('navigate', winnerTarget)">{{ winnerDestination }} <AppIcon name="arrow-right" :size="12" /></a><strong v-else>{{ winnerDestination }}</strong></div>
       <div v-if="loserDestination"><AppIcon name="arrow-right" :size="13" /><span>{{ match.status === 'bye' ? 'Проход' : 'Проигравший' }}</span><a v-if="loserTarget" :href="`#tournament-match-${loserTarget}`" @click.prevent="emit('navigate', loserTarget)">{{ loserDestination }} <AppIcon name="arrow-right" :size="12" /></a><strong v-else>{{ loserDestination }}</strong></div>
     </div>
-    <details v-if="match.teamIds.some(Boolean)" class="match-rosters"><summary><AppIcon name="users" :size="13" /> Составы команд <AppIcon name="chevron-down" :size="13" /></summary><div v-for="id in match.teamIds.filter((item): item is string => Boolean(item))" :key="id"><h4>{{ teamName(id) }} <span>{{ roster(id).length }} / 5</span></h4><ul v-if="roster(id).length"><li v-for="player in roster(id)" :key="player!.id"><span :title="formatRole(player!.role)">{{ player!.role }}</span>{{ player!.nickname }}</li></ul><p v-else>Состав ещё не указан</p></div></details>
+    <div v-if="match.teamIds.some(Boolean)" class="match-rosters"><div v-for="id in match.teamIds.filter((item): item is string => Boolean(item))" :key="id"><h4>{{ teamName(id) }} <span>{{ roster(id).length }} / 5</span></h4><ul v-if="roster(id).length"><li v-for="player in roster(id)" :key="player!.id"><span :title="formatRole(player!.role)">{{ player!.role }}</span>{{ player!.nickname }}</li></ul><p v-else>Состав ещё не указан</p></div></div>
+    </details>
   </article>
 </template>
 
@@ -136,6 +141,27 @@ button.match-team:not(:disabled):hover .team-pick-dot { border-color: #b596ec; }
 .match-rosters summary { display: flex; align-items: center; gap: 6px; min-height: 40px; color: #a18bac; font-size: 9px; cursor: pointer; list-style: none; }.match-rosters summary::-webkit-details-marker { display: none; }.match-rosters summary > svg:last-child { margin-left: auto; }
 .match-rosters > div { padding: 11px 0; border-top: 1px solid #ffffff06; }.match-rosters h4 { margin: 0; color: #bba4c5; font-size: 10px; font-weight: 650; overflow-wrap: anywhere; }.match-rosters h4 > span { margin-left: 5px; color: #816b8b; font-size: 8px; white-space: nowrap; }
 .match-rosters ul { display: grid; gap: 8px; margin: 11px 0 0; padding: 0; list-style: none; }.match-rosters li { display: flex; align-items: center; gap: 7px; color: #a58eb0; font-size: 10px; overflow-wrap: anywhere; }.match-rosters li > span { display: grid; place-items: center; flex-shrink: 0; width: 19px; height: 20px; border: 1px solid #ad8bff20; border-radius: 4px; font-size: 9px; }.match-rosters p { margin-top: 9px; color: #7d6688; font-size: 9px; }
+.tournament-match { padding: 14px; }
+.match-topline > span:first-child, .match-status { font-size: 10px; }
+.match-team, .match-placeholder { min-height: 58px; }
+.match-team-copy strong { overflow: visible; white-space: normal; overflow-wrap: anywhere; font-size: 13px; }
+.match-team-copy small { font-size: 10px; line-height: 1.6; }
+.team-seed, .empty-seed { font-size: 11px; }
+.match-placeholder { font-size: 12px; }
+.match-result { display: flex; align-items: center; justify-content: space-between; gap: 7px; min-height: 44px; margin-top: 5px; }
+.match-result > span { display: flex; align-items: center; gap: 6px; color: #a8bd89; font-size: 10px; }
+.match-result button { min-height: 44px; padding: 6px 0 6px 8px; color: #ba9ace; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.match-hint { min-height: 44px; padding: 15px 0 8px; color: #9985ad; font-size: 11px; }
+.match-details { margin-top: 5px; border-top: 1px solid #ffffff0b; }
+.match-details > summary { display: flex; align-items: center; gap: 7px; min-height: 44px; color: #af99c2; font-size: 11px; list-style: none; cursor: pointer; }
+.match-details > summary::-webkit-details-marker { display: none; }
+.match-details > summary > svg:last-child { margin-left: auto; }
+.match-details[open] > summary > svg:last-child { transform: rotate(180deg); }
+.match-destinations { margin-top: 0; }
+.match-destinations > div, .match-destinations > div > strong { font-size: 11px; }
+.match-destinations > div > a { min-height: 44px; }
+.match-rosters h4, .match-rosters li { font-size: 12px; }
+.match-rosters h4 > span, .match-rosters p { font-size: 11px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }

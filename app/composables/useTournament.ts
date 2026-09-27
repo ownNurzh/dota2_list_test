@@ -73,8 +73,8 @@ export function useTournament() {
     hasResults,
     archivedId,
     archiveError: historyError,
-    archive: (title: string, date: string) => {
-      archivedId.value = save(state.value, title, date)
+    archive: (date: string) => {
+      archivedId.value = save(state.value, date)
       return Boolean(archivedId.value)
     },
     chooseWinner: (matchId: string, winnerId: string | null) => apply(setMatchWinner(state.value, matchId, winnerId)),

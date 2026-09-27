@@ -32,9 +32,10 @@ type PendingAction = { type: 'resize'; size: TournamentSize }
   | { type: 'reset' }
 const pendingAction = ref<PendingAction | null>(null)
 const announcement = ref('')
-const archiveTitle = ref('Вечерний кубок')
+const setupOpen = ref(true)
 const archiveDate = ref('')
 onMounted(() => {
+  setupOpen.value = !hasResults.value
   const today = new Date()
   archiveDate.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 })
@@ -71,12 +72,12 @@ function canChoose(match: Match) {
   return ready.value && (match.status === 'ready' || match.status === 'complete')
 }
 
-function selectWinner(matchId: string, id: string) {
+function selectWinner(matchId: string, id: string | null) {
   const match = matchesById.value.get(matchId)
   if (!match || !canChoose(match)) return
-  const deselect = match.winnerId === id
-  chooseWinner(match.id, deselect ? null : id)
-  announcement.value = deselect
+  if (match.winnerId === id) return
+  chooseWinner(match.id, id)
+  announcement.value = id === null
     ? `Результат матча ${matchReference(match.id)} отменён. Зависимые результаты сброшены.`
     : `${teamName(id)} — победитель матча ${matchReference(match.id)}.`
 }
@@ -119,15 +120,15 @@ useSeoMeta({
   <div class="page-container tournament-page">
     <div class="tournament-page-links">
       <NuxtLink class="tournament-back" to="/"><AppIcon name="arrow-left" :size="15" /> Наши игроки</NuxtLink>
-      <NuxtLink class="tournament-back" to="/tournaments/history"><AppIcon name="trophy" :size="15" /> История турниров</NuxtLink>
+      <NuxtLink class="tournament-back" to="/tournaments/history"><AppIcon name="trophy" :size="15" /> История чемпионов</NuxtLink>
     </div>
 
     <section class="tournament-hero" aria-labelledby="tournament-heading">
       <div class="tournament-hero-copy">
         <span class="eyebrow"><AppIcon name="swords" :size="13" /> СВОИ ПРОТИВ СВОИХ</span>
-        <h1 id="tournament-heading">Кубок<br><span>своего лобби.</span></h1>
-        <p>Собрались, разбились на пятёрки — и выясняем,<br class="tournament-desktop-break"> кто сегодня заберёт кубок. После катки всё равно свои.</p>
-        <div class="tournament-format-label"><span>5 × 5</span><span>BO1</span><span>{{ state.format === 'double' ? 'С нижней сеткой' : 'До первого поражения' }}</span></div>
+        <h1 id="tournament-heading">Кубок <span>своего лобби.</span></h1>
+        <p>Собери команды, выбери формат и отмечай победителей.</p>
+        <div class="tournament-format-label"><span>5 × 5</span><span>BO1</span><span>{{ state.format === 'double' ? 'С нижней сеткой' : 'До первого поражения' }}</span><a href="#tournament-bracket">К матчам <AppIcon name="arrow-right" :size="14" /></a></div>
       </div>
       <div class="tournament-emblem" aria-hidden="true">
         <span class="emblem-orbit" />
@@ -140,10 +141,15 @@ useSeoMeta({
     <section class="tournament-setup panel" aria-labelledby="setup-heading">
       <div class="setup-topline">
         <div>
-          <span class="eyebrow">ПЕРЕД ПЕРВОЙ КАТКОЙ</span>
-          <h2 id="setup-heading">Собираем сетку</h2>
+          <span class="eyebrow">{{ state.size }} КОМАНД · {{ expectedMatches }} МАТЧЕЙ</span>
+          <h2 id="setup-heading">Настройки турнира</h2>
         </div>
         <div class="tournament-actions">
+          <button type="button" class="tournament-action setup-toggle" :aria-expanded="setupOpen" aria-controls="tournament-settings" @click="setupOpen = !setupOpen"><AppIcon name="chevron-down" :size="16" /> {{ setupOpen ? 'Свернуть' : 'Настроить' }}</button>
+        </div>
+      </div>
+      <div v-show="setupOpen" id="tournament-settings">
+        <div class="tournament-actions setup-actions">
           <button type="button" class="tournament-action" :disabled="!ready" @click="requestAction({ type: 'shuffle' })">
             <AppIcon name="swords" :size="15" /> Перемешать посев
           </button>
@@ -151,7 +157,6 @@ useSeoMeta({
             <AppIcon name="reset" :size="15" /> Сбросить результаты
           </button>
         </div>
-      </div>
 
       <div class="mode-selector" role="group" aria-label="Тип турнира">
         <button
@@ -193,6 +198,7 @@ useSeoMeta({
       </div>
 
       <TournamentTeamEditor :state="state" :ready="ready" @rename="rename" @set-roster="setRoster" />
+      </div>
     </section>
 
     <TournamentBracket :state="state" :ready="ready" @select="selectWinner" />
@@ -204,14 +210,13 @@ useSeoMeta({
     </section>
 
     <section v-if="champion" class="archive-finish-panel" aria-labelledby="archive-finish-heading">
-      <div><span class="eyebrow">ОСТАВИМ В ИСТОРИИ</span><h2 id="archive-finish-heading">Сохранить этот кубок</h2><p>Составы, результаты и победитель останутся в истории. Файл для передачи друзьям можно скачать там же.</p></div>
-      <form v-if="!archivedId" class="archive-form" @submit.prevent="archive(archiveTitle, archiveDate)">
-        <label><span>Название турнира</span><input v-model="archiveTitle" type="text" maxlength="80" required placeholder="Вечерний кубок"></label>
+      <div><span class="eyebrow">ОСТАВИМ В ИСТОРИИ</span><h2 id="archive-finish-heading">Запомнить чемпиона</h2><p>Дата, команда {{ champion.name }} и её игроки. Запись сохранится в этом браузере.</p></div>
+      <form v-if="!archivedId" class="archive-form" @submit.prevent="archive(archiveDate)">
         <label><span>Дата турнира</span><input v-model="archiveDate" type="date" required></label>
-        <button type="submit" class="button button-primary" :disabled="!ready || !archiveTitle.trim() || !archiveDate"><AppIcon name="trophy" :size="17" /> Сохранить в историю</button>
+        <button type="submit" class="button button-primary" :disabled="!ready || !archiveDate"><AppIcon name="trophy" :size="17" /> Сохранить в историю</button>
       </form>
       <p v-if="archiveError" class="archive-error" role="alert">{{ archiveError }}</p>
-      <NuxtLink v-if="archivedId" :to="{ path: '/tournaments/history', query: { id: archivedId } }" class="button archive-saved"><AppIcon name="check" :size="17" /> Кубок сохранён. Открыть историю <AppIcon name="arrow-right" :size="16" /></NuxtLink>
+      <NuxtLink v-if="archivedId" to="/tournaments/history" class="button archive-saved"><AppIcon name="check" :size="17" /> Чемпион сохранён. Открыть историю <AppIcon name="arrow-right" :size="16" /></NuxtLink>
     </section>
 
     <div class="tournament-storage-note" :class="{ 'storage-unavailable': !storageAvailable }">
@@ -393,6 +398,34 @@ useSeoMeta({
 @media (max-width: 360px) {
   .tournament-action { font-size: 7px; gap: 5px; }
 }
+.tournament-hero { padding-block: 28px; }
+.tournament-hero h1 { font-size: clamp(25px, 3.3vw, 40px); }
+.tournament-hero-copy > p { font-size: 13px; }
+.tournament-format-label { align-items: center; margin-top: 18px; }
+.tournament-format-label span { font-size: 10px; }
+.tournament-format-label a { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 12px; border-radius: 6px; color: #d0eb91; font-size: 12px; }
+.tournament-emblem { width: 25%; gap: 18px; }
+.tournament-emblem > svg { width: 86px; }
+.setup-topline { flex-direction: row; align-items: center; }
+.setup-topline .eyebrow { font-size: 9px; }
+.setup-topline > .tournament-actions { width: auto; flex-shrink: 0; }
+.setup-actions { margin-top: 20px; max-width: none; justify-content: flex-start; }
+.tournament-action { min-height: 44px; font-size: 12px; }
+.setup-toggle[aria-expanded=true] svg { transform: rotate(180deg); }
+.mode-copy strong { font-size: 13px; }.mode-copy small { color: #aa9ab8; font-size: 11px; }
+.mode-explanation { color: #a99bb4; font-size: 12px; }
+.format-selector button span, .format-summary { font-size: 11px; }
+.archive-finish-panel p { overflow-wrap: anywhere; }
+.archive-form label { flex: 0 1 240px; }.archive-form input { font-size: 16px; }
+.tournament-storage-note p { font-size: 11px; }
+@media(max-width:700px) {
+  .tournament-hero { padding: 22px; }.tournament-hero-copy { max-width: 100%; }.tournament-hero h1 { margin-block: 12px; }.tournament-emblem { opacity: .14; width: 38%; }
+  .tournament-setup { padding: 20px 16px; }.setup-topline h2 { font-size: 16px; }.setup-topline .eyebrow { font-size: 8px; }
+  .tournament-actions { gap: 8px; }.tournament-action { font-size: 11px; }.setup-actions .tournament-action { flex: 1 1 150px; }
+  .mode-copy strong { font-size: 13px; }.mode-copy small { font-size: 11px; }.mode-explanation { font-size: 12px; }
+  .tournament-page-links .tournament-back { font-size: 11px; }.archive-form label { flex: auto; }.archive-form .button { font-size: 12px; }
+}
+@media(max-width:380px) { .setup-topline { gap: 10px; }.setup-topline h2 { font-size: 14px; }.setup-topline .eyebrow { font-size: 7px; }.setup-toggle { padding-inline: 8px; }.tournament-page-links { gap: 5px; }.tournament-page-links .tournament-back { font-size: 10px; gap: 5px; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
