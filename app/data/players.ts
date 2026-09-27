@@ -36,6 +36,7 @@ export const statDefinitions: { key: StatKey; label: string; description: string
 
 // Редактируйте игроков ниже: role — позиция 1–5 (названия указаны в roleDefinitions).
 // Каждый id должен быть уникальным; характеристики stats задаются числами от 0 до 100.
+// Игроки идут по порядку id. Нового добавляйте в конец со следующим номером; старые id не меняйте.
 // Характеристики — условные оценки, а не проверенная статистика матчей.
 export const players: Player[] = [
   {
@@ -237,15 +238,6 @@ export const players: Player[] = [
     stats: { mechanics: 95, farming: 93, teamwork: 86, gameSense: 97, versatility: 88 },
   },
   {
-    id: "p31", nickname: "Z", fullName: "Біржан",
-    role: 4, tier: "Tier 2", mmr: 3500,
-    tags: ["Чилл"],
-    notes: "Ерболдын хейтері",
-    avatar: null,
-    signatureHeroes: ["Disruptor"],
-    stats: { mechanics: 70, farming: 50, teamwork: 86, gameSense: 78, versatility: 68 },
-  },
-  {
     id: "p23", nickname: "GOAT", fullName: "Архат",
     role: 2, tier: "Tier 2", mmr: 5000,
     tags: ["БаганынБратишкасы"],
@@ -318,13 +310,13 @@ export const players: Player[] = [
     stats: { mechanics: 94, farming: 86, teamwork: 87, gameSense: 93, versatility: 92 },
   },
   {
-    id: "p34", nickname: "Daiteris", fullName: "Искандер",
-    role: 3, tier: "Tier 1", mmr: 5000,
-    tags: [],
-    notes: "Чилл",
+    id: "p31", nickname: "Z", fullName: "Біржан",
+    role: 4, tier: "Tier 2", mmr: 3500,
+    tags: ["Чилл"],
+    notes: "Ерболдын хейтері",
     avatar: null,
-    signatureHeroes: ["Queen of Pain","Magnus"],
-    stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
+    signatureHeroes: ["Disruptor"],
+    stats: { mechanics: 70, farming: 50, teamwork: 86, gameSense: 78, versatility: 68 },
   },
   {
     id: "p32", nickname: "bl1zzard", fullName: "Жеңіс",
@@ -343,5 +335,14 @@ export const players: Player[] = [
     avatar: null,
     signatureHeroes: ["earthshaker"],
     stats: { mechanics: 90, farming: 80, teamwork: 90, gameSense: 90, versatility: 90 },
+  },
+  {
+    id: "p34", nickname: "Daiteris", fullName: "Искандер",
+    role: 3, tier: "Tier 1", mmr: 5000,
+    tags: [],
+    notes: "Чилл",
+    avatar: null,
+    signatureHeroes: ["Queen of Pain","Magnus"],
+    stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
   },
 ]
