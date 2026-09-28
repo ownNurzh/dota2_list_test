@@ -9,7 +9,7 @@ export const tournaments: TournamentArchiveEntry[] = [
   {
     id: 't1',
     date: '2026-09-26',
-    champion: { name: 'Daiteris', playerIds: ['p5', 'p34', 'p33', 'p21', 'p30'] },
+    champion: { name: 'Daiteris', playerIds: ['p5', 'p34', 'p33', 'p21', 'p35'] },
   },
   {
     id: 't2',

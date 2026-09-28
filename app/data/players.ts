@@ -345,4 +345,13 @@ export const players: Player[] = [
     signatureHeroes: ["Queen of Pain","Magnus"],
     stats: { mechanics: 80, farming: 86, teamwork: 70, gameSense: 85, versatility: 70 },
   },
+  {
+    id: "p35", nickname: "Elason", fullName: "Еля",
+    role: 1, tier: "Tier 2", mmr: 3000,
+    tags: [],
+    notes: "",
+    avatar: null,
+    signatureHeroes: [],
+    stats: { mechanics: 70, farming: 75, teamwork: 70, gameSense: 80, versatility: 70 },
+  },
 ]
