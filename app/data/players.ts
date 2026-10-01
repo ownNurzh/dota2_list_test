@@ -55,7 +55,7 @@ export const players: Player[] = [
     notes: "0/20 болу сәнғой",
     avatar: "https://imgs.search.brave.com/fLn2-Em8z-gc1CWJpie9GK6YE4VspO8GtnS6s-MiqBo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZW1p/LmtsZXYuY2x1Yi91/cGxvYWRzL3Bvc3Rz/LzIwMjQtMDQvdGh1/bWJzL21lbWkta2xl/di1jbHViLWEzbDQt/cC1tZW1pLWJvbHNo/b2ktbmVnci03Lmpw/Zw",
     signatureHeroes: ["Juggernaut","Terrorblade"],
-    stats: { mechanics: 76, farming: 80, teamwork: 68, gameSense: 71, versatility: 72 },
+    stats: { mechanics: 76, farming: 70, teamwork: 68, gameSense: 71, versatility: 72 },
   },
   {
     id: "p3", nickname: "GOAT/LIMBO", fullName: "Бага",
@@ -64,7 +64,7 @@ export const players: Player[] = [
     notes: "Ербологодтын криптониды",
     avatar: null,
     signatureHeroes: ["Spectre","Sven","Juggernaut"],
-    stats: { mechanics: 88, farming: 90, teamwork: 74, gameSense: 83, versatility: 80 },
+    stats: { mechanics: 88, farming: 90, teamwork: 70, gameSense: 83, versatility: 80 },
   },
   {
     id: "p4", nickname: "Meet_Mstitel", fullName: "Азат/Томи",
@@ -73,7 +73,7 @@ export const players: Player[] = [
     notes: "Утылп калып азанға дейін жылау сән.",
     avatar: null,
     signatureHeroes: ["Spectre","Medusa","Luna"],
-    stats: { mechanics: 84, farming: 91, teamwork: 78, gameSense: 86, versatility: 75 },
+    stats: { mechanics: 84, farming: 95, teamwork: 78, gameSense: 86, versatility: 75 },
   },
   {
     id: "p5", nickname: "Ампусенок/Чикиряу", fullName: "Дархан",
@@ -91,7 +91,7 @@ export const players: Player[] = [
     notes: "",
     avatar: null,
     signatureHeroes: ["Luna","Phantom Lancer"],
-    stats: { mechanics: 78, farming: 81, teamwork: 75, gameSense: 73, versatility: 70 },
+    stats: { mechanics: 78, farming: 85, teamwork: 77, gameSense: 75, versatility: 70 },
   },
   {
     id: "p7", nickname: "ALINA/ONE DAY", fullName: "Тима",
@@ -109,7 +109,7 @@ export const players: Player[] = [
     notes: "",
     avatar: null,
     signatureHeroes: ["Phantom Lancer","Morphling"],
-    stats: { mechanics: 94, farming: 95, teamwork: 83, gameSense: 90, versatility: 87 },
+    stats: { mechanics: 94, farming: 97, teamwork: 85, gameSense: 90, versatility: 87 },
   },
   {
     id: "p9", nickname: "суперКазах", fullName: "Абылай",
@@ -136,7 +136,7 @@ export const players: Player[] = [
     notes: "Ерболды сігу сәнғой",
     avatar: null,
     signatureHeroes: ["Dark Willow","Techies","Undying"],
-    stats: { mechanics: 80, farming: 56, teamwork: 84, gameSense: 79, versatility: 87 },
+    stats: { mechanics: 80, farming: 50, teamwork: 85, gameSense: 79, versatility: 87 },
   },
   {
     id: "p12", nickname: "Rico Caboom", fullName: "Дильшат",
@@ -145,7 +145,7 @@ export const players: Player[] = [
     notes: "Жақсы мидер негізі дота ойнамаса.",
     avatar: null,
     signatureHeroes: ["Necrophos","Arc Warden","Beastmaster"],
-    stats: { mechanics: 91, farming: 87, teamwork: 82, gameSense: 93, versatility: 90 },
+    stats: { mechanics: 91, farming: 85, teamwork: 80, gameSense: 93, versatility: 90 },
   },
   {
     id: "p13", nickname: "Nurtentek", fullName: "Нурда",
@@ -203,12 +203,12 @@ export const players: Player[] = [
   },
   {
     id: "p19", nickname: "Гарри Потный", fullName: "Кадыр",
-    role: 1, tier: "Tier 3", mmr: 2000,
+    role: 1, tier: "Tier 3", mmr: 3000,
     tags: ["Далбаеб","2009","Ербол#1Хейтер"],
     notes: "Лобби ойнамасада сгп стайды любойн",
     avatar: null,
     signatureHeroes: ["Phantom Lancer","Tinker"],
-    stats: { mechanics: 55, farming: 61, teamwork: 49, gameSense: 52, versatility: 66 },
+    stats: { mechanics: 55, farming: 65, teamwork: 49, gameSense: 52, versatility: 66 },
   },
   {
     id: "p20", nickname: "TOfu", fullName: "Ербол",
@@ -217,7 +217,7 @@ export const players: Player[] = [
     notes: "Микрофоны жох.",
     avatar: null,
     signatureHeroes: ["Marci"],
-    stats: { mechanics: 79, farming: 74, teamwork: 70, gameSense: 77, versatility: 68 },
+    stats: { mechanics: 79, farming: 74, teamwork: 65, gameSense: 77, versatility: 68 },
   },
   {
     id: "p21", nickname: "yoursin", fullName: "Дияс",
@@ -329,12 +329,12 @@ export const players: Player[] = [
   },
   {
     id: "p33", nickname: "Messi", fullName: "Ернар",
-    role: 4, tier: "Tier 1", mmr: 7000,
+    role: 4, tier: "Tier 1", mmr: 4000,
     tags: [],
     notes: "Чилл",
     avatar: null,
     signatureHeroes: ["earthshaker"],
-    stats: { mechanics: 90, farming: 80, teamwork: 90, gameSense: 90, versatility: 90 },
+    stats: { mechanics: 90, farming: 60, teamwork: 90, gameSense: 90, versatility: 90 },
   },
   {
     id: "p34", nickname: "Daiteris", fullName: "Искандер",
