@@ -248,12 +248,12 @@ export const players: Player[] = [
   },
   {
     id: "p24", nickname: "Kemenger", fullName: "Олжас",
-    role: 3, tier: "Tier 2", mmr: 2000,
+    role: 3, tier: "Tier 2", mmr: 4000,
     tags: ["Шымкент"],
     notes: "Азат десе тұрып кетед.",
     avatar: null,
     signatureHeroes: ["Mars","Timbersaw","Largo"],
-    stats: { mechanics: 60, farming: 48, teamwork: 74, gameSense: 59, versatility: 77 },
+    stats: { mechanics: 65, farming: 60, teamwork: 74, gameSense: 70, versatility: 77 },
   },
   {
     id: "p25", nickname: "ZoSo", fullName: "Данабек",
