@@ -46,7 +46,7 @@ export const players: Player[] = [
     notes: "Арыстаны оянса жаман",
     avatar: "https://imgs.search.brave.com/yAW1lQycdlK6VDGO-xWqBlStpvOoqUxUvA0AKs4zaBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMxNi50Z2NudC5y/dS9wb3N0cy9fMC85/Ni85NmRiM2QxMmU4/ODcyNzIyMzMzMTY2/NDc5YjkyOTIxMC5q/cGc",
     signatureHeroes: ["Drow Ranger","Lifestealer"],
-    stats: { mechanics: 65, farming: 40, teamwork: 70, gameSense: 50, versatility: 64 },
+    stats: { mechanics: 65, farming: 50, teamwork: 70, gameSense: 50, versatility: 64 },
   },
   {
     id: "p2", nickname: "General", fullName: "Димок",
@@ -122,12 +122,12 @@ export const players: Player[] = [
   },
   {
     id: "p10", nickname: "Mode: Hashirama", fullName: "Нурбол",
-    role: 4, tier: "Tier 2", mmr: 4300,
+    role: 4, tier: "Tier 2", mmr: 4500,
     tags: ["Шал","Макаки"],
     notes: "Лионды Нурболға қарап создать еткенғой.Макакиге ағаштан ағашға секіруді үйреткенгой",
     avatar: null,
     signatureHeroes: ["Lion","Witch Doctor"],
-    stats: { mechanics: 77, farming: 55, teamwork: 88, gameSense: 82, versatility: 79 },
+    stats: { mechanics: 77, farming: 70, teamwork: 88, gameSense: 85, versatility: 79 },
   },
   {
     id: "p11", nickname: "MADARA", fullName: "Дәулет",
